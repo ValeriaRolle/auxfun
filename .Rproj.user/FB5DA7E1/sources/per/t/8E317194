@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1530521337065.000,
+    "dirty" : false,
+    "encoding" : "ISO-8859-1",
+    "folds" : "",
+    "hash" : "3513565021",
+    "id" : "8E317194",
+    "lastKnownWriteTime" : 1542192973,
+    "last_content_update" : 1542192973,
+    "path" : "~/Dropbox (Personal)/auxfun/R/sjags.R",
+    "project_path" : "R/sjags.R",
+    "properties" : {
+        "cursorPosition" : "335,24",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

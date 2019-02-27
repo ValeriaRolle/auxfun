@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1529501384169.000,
+    "dirty" : false,
+    "encoding" : "ISO-8859-1",
+    "folds" : "",
+    "hash" : "3730494951",
+    "id" : "BAC23A06",
+    "lastKnownWriteTime" : 1548190744,
+    "last_content_update" : 1548190744,
+    "path" : "~/Dropbox (Personal)/auxfun/R/Untitled.R",
+    "project_path" : "R/Untitled.R",
+    "properties" : {
+        "cursorPosition" : "111,28",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

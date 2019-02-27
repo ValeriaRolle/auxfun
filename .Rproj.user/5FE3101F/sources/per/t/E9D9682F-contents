@@ -1,0 +1,610 @@
+
+#' ---
+#' title: "Bayesian Analysis using JAGS"
+#' output:
+#'   pdf_document:
+#'     latex_engine: xelatex
+#' ---
+
+
+
+
+## BAYESIAN ANALYSIS USING R2JAGS (2) ##
+
+# Cargar librerías
+
+suppressPackageStartupMessages(library(tidyverse))
+library(tidyverse)
+suppressPackageStartupMessages(library(R2jags))
+library(R2jags)
+suppressPackageStartupMessages(library(gdata))
+library(gdata)
+suppressPackageStartupMessages(library(ggthemes))
+library(ggthemes)
+library(auxfun)
+
+# Cargar datos
+
+load("ensayo.RData")
+
+names(datos)[1] <- str_replace("n\xba", "\xba", "um")
+names(datos)[58] <- str_replace("sexoni\xf1o", "\xf1o", "Ã±o")
+names(datos)[74] <- str_replace("guarder\xeda", "\xeda", "ia")
+
+datos$vpp <- car::recode(datos$vpp, "1=1;2=0")
+datos$vpp.1 <- factor(datos$vpp, labels = c("No Interv","Interv"))
+
+
+# Efecto crudo de la intervenciÃ³n (VPP) sobre psicopatologÃ�a postparto
+
+table(datos$dxpsicopost, useNA = "ifany")
+datos$dxpsicopost <- car::recode(datos$dxpsicopost, "1 = 1;2 = 0")
+datos$fumae <- car::recode(datos$fumae, "1 = 1; 2 = 0")
+datos$apansiedad <- car::recode(datos$apansiedad, "1=1;2=0")
+
+
+table(datos$vpp.1, datos$dxpsicopost)
+
+
+cat("model{
+	for(i in 1:N){
+    y[i] ~ dbern(prob[i])
+    logit(prob[i]) <- beta0 + beta1*x1[i]
+    }
+    beta0 ~ dunif(-1000, 1000)
+    beta1 ~ dunif(-1000, 1000)
+    or1 <- exp(beta1)
+    m1 <- step(beta1)-equals(beta1,0)
+    }", file = "modelo_reglog1.txt")
+
+
+jd0 <- list(y = datos$dxpsicopost, x1 = datos$vpp, N = dim(datos)[1])
+jp0 <- c("or1","m1")
+
+jm0 <- jags(data = jd0, parameters.to.save = jp0, model.file = "modelo_reglog1.txt",
+            n.iter = 10000, n.chains = 4, n.burnin = 500, n.thin = 2)
+
+print(jm0)
+
+sims <- as.mcmc(jm0)
+
+
+# Efecto ajustado de la intervención (VPP) sobre psicopatología postparto
+
+
+cat("model{
+	for(i in 1:N){
+    y[i] ~ dbern(prob[i])
+    logit(prob[i]) <- beta0 + beta1*x1[i] + beta2*x2[i] + beta3*x3[i]
+    }
+    beta0 ~ dunif(-1000, 1000)
+    beta1 ~ dunif(-1000, 1000)
+    beta2 ~ dunif(-1000, 1000)
+    beta3 ~ dunif(-1000, 1000)
+    or1 <- exp(beta1)
+    or2 <- exp(beta2)
+    or3 <- exp(beta3)
+    m1 <- step(beta1)-equals(beta1,0)
+    m2 <- step(beta2)-equals(beta2,0)
+    m3 <- step(beta3)-equals(beta3,0)
+    }", file = "modelo_reglog3.txt")
+
+
+jd1 <- list(y = datos$dxpsicopost, x1 = datos$vpp, x2 = datos$fumae, x3 = datos$stait, N = dim(datos)[1])
+jp1 <- c("or1","or2", "or3", "m1", "m2", "m3")
+
+jm1 <- jags(data = jd1, parameters.to.save = jp1, model.file = "modelo_reglog3.txt",
+            n.iter = 40000, n.chains = 4, n.burnin = 500, n.thin = 2)
+
+print(jm1)
+
+sims <- as.mcmc(jm1)
+
+
+# Efecto de la VPP ajustado por conocimientos previos y ansiedad previa sobre la LM al alta
+
+datos$lme_alta <- car::recode(datos$lmalta, "1=1;2:3=0")
+
+jd2 <- list(y = datos$lme_alta, x1 = datos$vpp, x2 = datos$conceptot, x3 = datos$stait, N = dim(datos)[1])
+jp2 <- c("or1","or2", "or3", "m1", "m2", "m3")
+
+jm2 <- jags(data = jd2, parameters.to.save = jp2, model.file = "modelo_reglog3.txt",
+            n.iter = 10000, n.chains = 4, n.burnin = 500, n.thin = 2)
+
+print(jm2)
+
+sims <- as.mcmc(jm2)
+
+library(auxfun)
+jm2.1 <- sjags(lme_alta ~ vpp + conceptot + stait, data = datos, family = "binomial")
+print(jm2.1)
+gg <- jm2.1$plotlist$x3
+ggtoppt(gg, export = TRUE, pptname = "exportedplots.pptx")
+
+datos$cesarea <- ifelse(datos$tipoparto == 3, 1, 0)
+datos$instrum <- ifelse(datos$tipoparto == 2, 1, 0)
+
+
+# Efecto de la VPP sobre LME al alta ajustada por variables relacionadas con el parto
+
+datos$piel <- car::recode(datos$piel, "1=1;2=0")
+datos$epidural <- car::recode(datos$epidural, "1=1;2=0")
+datos$inducido <- car::recode(datos$inducido, "1=1;2=0")
+datos$bibihospi <- car::recode(datos$bibihospi, "1=1;2=0")
+
+cat("model{
+    for(i in 1:N){
+    y[i] ~ dbern(prob[i])
+    logit(prob[i]) <- beta0 + beta1*x1[i] + beta2*x2[i] + beta3*x3[i] + beta4*x4[i] + beta5*x5[i] + beta6*x6[i]
+    }
+    beta0 ~ dunif(-1000, 1000)
+    beta1 ~ dunif(-1000, 1000)
+    beta2 ~ dunif(-1000, 1000)
+    beta3 ~ dunif(-1000, 1000)
+    beta4 ~ dunif(-1000, 1000)
+    beta5 ~ dunif(-1000, 1000)
+    beta6 ~ dunif(-1000, 1000)
+    or1 <- exp(beta1)
+    or2 <- exp(beta2)
+    or3 <- exp(beta3)
+    or4 <- exp(beta4)
+    or5 <- exp(beta5)
+    or6 <- exp(beta6)
+    m1 <- step(beta1)-equals(beta1,0)
+    m2 <- step(beta2)-equals(beta2,0)
+    m3 <- step(beta3)-equals(beta3,0)
+    m4 <- step(beta4)-equals(beta4,0)
+    m5 <- step(beta5)-equals(beta5,0)
+    m6 <- step(beta6)-equals(beta6,0)
+    }", file = "modelo_reglog6.txt")
+
+
+jd4 <- list(y = datos$lme_alta, x1 = datos$vpp, x2 = datos$instrum, x3 = datos$piel, x4 = datos$inducido, x5 = datos$epidural, x6 = datos$horasbolsarota,  N = dim(datos)[1])
+jp4 <- c("or1","or2", "or3", "or4","or5","or6","m1", "m2", "m3","m4", "m5", "m6")
+
+jm4 <- jags(data = jd4, parameters.to.save = jp4, model.file = "modelo_reglog6.txt",
+            n.iter = 40000, n.chains = 4, n.burnin = 500, n.thin = 2)
+
+print(jm4)
+
+jm4.1 <- sjags(lme_alta ~ vpp + as.factor(tipoparto), data = datos, family = "binomial")
+print(jm4.1$jm)
+
+jm4.2 <- sjags(lme_alta ~ vpp + piel, data = datos, family = "binomial")
+print(jm4.2$jm)
+
+jm4.3 <- sjags(lme_alta ~ vpp + bibihospi, data = datos, family = "binomial")
+print(jm4.3$jm)
+
+cat("model{
+    for(i in 1:N){
+    y[i] ~ dbern(prob[i])
+    logit(prob[i]) <- beta0 + beta1*x1[i] + beta2*x2[i] + beta3*x3[i]
+    }
+    beta0 ~ dunif(-1000, 1000)
+    beta1 ~ dunif(-1000, 1000)
+    beta2 ~ dunif(-1000, 1000)
+    beta3 ~ dunif(-1000, 1000)
+    or1 <- exp(beta1)
+    or2 <- exp(beta2)
+    or3 <- exp(beta3)
+    m1 <- step(beta1)-equals(beta1,0)
+    m2 <- step(beta2)-equals(beta2,0)
+    m3 <- step(beta3)-equals(beta3,0)
+    }", file = "modelo_reglog3.txt")
+
+
+jd5 <- list(y = datos$lme_alta, x1 = datos$vpp, x2 = datos$instrum, x3 = datos$cesarea,  N = dim(datos)[1])
+jp5 <- c("or1","or2", "or3","m1", "m2", "m3")
+
+jm5 <- jags(data = jd5, parameters.to.save = jp5, model.file = "modelo_reglog3.txt",
+            n.iter = 40000, n.chains = 4, n.burnin = 500, n.thin = 2)
+
+print(jm5)
+
+
+cat("model{
+    for(i in 1:N){
+    y[i] ~ dbern(prob[i])
+    logit(prob[i]) <- beta0 + beta1*x1[i] + beta2*x2[i]
+    }
+    beta0 ~ dunif(-1000, 1000)
+    beta1 ~ dunif(-1000, 1000)
+    beta2 ~ dunif(-1000, 1000)
+    or1 <- exp(beta1)
+    or2 <- exp(beta2)
+    m1 <- step(beta1)-equals(beta1,0)
+    m2 <- step(beta2)-equals(beta2,0)
+    }", file = "modelo_reglog2.txt")
+
+
+jd4.3 <- list(y = datos$lme_alta, x1 = datos$vpp, x2 = datos$bibihospi,  N = dim(datos)[1])
+jp4.3 <- c("or1","or2","m1", "m2")
+
+jm4.3 <- jags(data = jd4.3, parameters.to.save = jp4.3, model.file = "modelo_reglog2.txt",
+            n.iter = 400000, n.chains = 4, n.burnin = 20000, n.thin = 2)
+
+print(jm4.3)
+
+
+# 1. Gráficos ----
+
+# 1.1 Gráficos relativos al parto. ----
+# Tipo de parto----
+datos$`Tipo parto`  <- factor(datos$tipoparto, labels = c("Natural","Instrumental","Cesárea"))
+
+gr <- ggplot(datos, aes(x = vpp.1, fill = `Tipo parto`)) +
+  geom_bar(position = "dodge") +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(x = "Grupo", y = "Frecuencia")
+  #scale_x_discrete(labels=c("1" = "Natural", "2" = "Instrumental",
+                              #"3" = "Cesárea"))
+
+ggtoppt(gr)
+# ggtoppt(gr, export = TRUE, pptname = "grafico_barras.pptx")
+
+# Epidural ----
+datos$`Epidural` <- factor(datos$epidural, labels = c("Sí","No"))
+
+gr2 <- ggplot(datos, aes(x =  vpp.1 , fill = `Epidural`)) +
+  geom_bar(position = "dodge", color = "black")+
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Grupo", y = "Frecuencia")
+  #scale_x_discrete(labels=c("0" = "No", "1" = "Sí"))
+
+gr2
+
+ggtoppt(gr2)
+# ggtoppt(gr2, export = TRUE, pptname = "grafico_barras_2.pptx")
+
+# Horas de bolsa rota ----
+gr3 <- ggplot(datos, aes(x = vpp.1, y = horasbolsarota, fill = vpp.1)) +
+  geom_boxplot() +
+  labs(x = "Grupo", y = "Horas de bolsa rota") +
+  scale_fill_brewer(palette = "Spectral") +
+  theme(legend.position = "none")
+gr3
+
+ggtoppt(gr3)
+# ggtoppt(gr3, export = TRUE, pptname = "grafico_box_3.pptx")
+
+# Parto inducido ----
+
+datos$`Parto Inducido` <- factor(datos$inducido, labels = c("Sí", "No"))
+
+gr4 <- ggplot(datos, aes(x = vpp.1, fill = `Parto Inducido`)) +
+  geom_bar(position = "dodge", color = "black")+
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Grupo", y = "Frecuencia")
+  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ�"))
+
+gr4
+
+ggtoppt(gr4)
+# ggtoppt(gr4, export = TRUE, pptname = "grafico_barras_4.pptx")
+
+# Piel con piel ----
+
+datos$`Piel con piel` <- factor(datos$piel, labels = c("Sí","No"))
+
+gr5 <- ggplot(datos, aes(x = vpp.1, fill = `Piel con piel`)) +
+  geom_bar(position = "dodge", color = "black")+
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Grupo", y = "Frecuencia")
+  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ�"))
+
+gr5
+
+ggtoppt(gr5)
+# ggtoppt(gr5, export = TRUE, pptname = "grafico_barras_5.pptx")
+
+# Complemento lactancia artificial ----
+
+datos$`Biberón en hospital` <- factor(datos$bibihospi, labels = c("Sí","No"))
+
+gr6 <- ggplot(datos, aes(x = vpp.1, fill = `Biberón en hospital`)) +
+  geom_bar(position = "dodge", color = "black")+
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Grupo", y = "Frecuencia")
+  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ�"))
+
+gr6
+
+ggtoppt(gr6)
+# ggtoppt(gr6, export = TRUE, pptname = "grafico_barras_6.pptx")
+
+# 1.2 Gráficos relativos al tipo de lactancia.----
+# Lactancia materna al alta ----
+
+datos$`LME al alta` <- factor(datos$lme_alta, labels = c("No","Sí"))
+
+gr7 <- ggplot(datos, aes(x = vpp.1, fill = `LME al alta`)) +
+  geom_bar(position = "dodge", color = "black")+
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Grupo", y = "Frecuencia")
+  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ�"))
+
+gr7
+
+ggtoppt(gr7)
+# ggtoppt(gr7, export = TRUE, pptname = "grafico_barras_7.pptx")
+
+# Lactancia materna al mes ----
+
+datos$`Lactancia materna al mes` <- factor(datos$lm1, labels = c("Materna","Artificial","Mixta") )
+
+gr8 <- ggplot(datos, aes(x = vpp.1, fill = `Lactancia materna al mes`)) +
+  geom_bar(position = "dodge", color = "black")+
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Grupo", y = "Frecuencia")
+  #scale_x_discrete(labels=c("1" = "Materna", "2" = "Artificial", "3" = "Mixta"))
+
+gr8
+
+ggtoppt(gr8)
+# ggtoppt(gr8, export = TRUE, pptname = "grafico_barras_8.pptx")
+
+# Lactancia materna al cuarto mes ----
+
+datos$`Lactancia materna 4 meses` <- factor(datos$lm4, labels =c("Materna","Artificial","Mixta"))
+
+gr9 <- ggplot(datos, aes(x = vpp.1, fill = `Lactancia materna 4 meses`)) +
+  geom_bar(position = "dodge", color = "black")+
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Grupo", y = "Frecuencia")
+  #scale_x_discrete(labels=c("1" = "Materna", "2" = "Artificial", "3" = "Mixta"))
+
+gr9
+
+ggtoppt(gr9)
+# ggtoppt(gr9, export = TRUE, pptname = "grafico_barras_9.pptx")
+
+# Lactancia al sexto mes ----
+
+datos$`Lactancia materna 6 meses` <- factor(datos$lm6, labels =c("Materna","Artificial","Mixta"))
+
+gr10 <- ggplot(datos, aes(x = vpp.1, fill = `Lactancia materna 6 meses`)) +
+  geom_bar(position = "dodge", color = "black")+
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Grupo", y = "Frecuencia")
+  #scale_x_discrete(labels=c("1" = "Materna", "2" = "Artificial", "3" = "Mixta"))
+
+gr10
+
+ggtoppt(gr10)
+# ggtoppt(gr10, export = TRUE, pptname = "grafico_barras_10.pptx")
+
+# Lactancia al año ----
+
+datos$`Lactancia materna al año` <- factor(datos$lm12, labels = c("Materna","Artificial","Mixta"))
+
+gr11 <- ggplot(datos, aes(x = vpp.1, fill = `Lactancia materna al año`)) +
+  geom_bar(position = "dodge", color = "black")+
+  scale_fill_brewer(palette = "Spectral") +
+  labs(x = "Grupo", y = "Frecuencia")
+  #scale_x_discrete(labels=c("1" = "Materna", "2" = "Artificial", "3" = "Mixta"))
+
+gr11
+
+ggtoppt(gr11)
+# ggtoppt(gr11, export = TRUE, pptname = "grafico_barras_11.pptx")
+
+
+# Gráficos relativos al número de consultas
+
+# Número de consultas ----
+
+gr12 <- ggplot(data = datos, aes(y = consultas_totales, x = vpp.1, fill = vpp.1)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(y = "Nº de consultas totales a los servicios sanitarios", x = "Grupo")+
+  theme(legend.position = "none")
+gr12
+
+gr12.1 <- ggplot(data = datos, aes(y = consultas_totales, x = vpp.1, fill = vpp.1)) +
+  geom_violin() +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(y = "Nº de consultas totales a los servicios sanitarios", x = "Grupo") +
+  stat_summary(fun.data=median_hilow, mult=1, geom="pointrange", color="black") +
+  theme(legend.position = "none")
+gr12.1
+
+ggtoppt(gr12)
+ggtoppt(gr12.1)
+
+# Número de procesos ----
+
+gr13 <- ggplot(data = datos, aes(y = num_procesos, x = vpp.1, fill = vpp.1)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(y = "Nº procesos durante primer año de vida", x = "Grupo") +
+  theme(legend.position = "none")
+gr13
+
+ggtoppt(gr13)
+
+gr13.1 <- ggplot(data = datos, aes(y = num_procesos, x = vpp.1, fill = vpp.1)) +
+  geom_violin() +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(y = "Nº procesos durante primer año de vida", x = "Grupo") +
+  stat_summary(fun.data=median_hilow, mult=1, geom="pointrange", color="black") +
+  theme(legend.position = "none")
+gr13.1
+
+ggtoppt(gr13.1)
+
+# Visitas al hospital ----
+
+gr14 <- ggplot(data = datos, aes(y = visitashospi, x = vpp.1, fill = vpp.1)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Spectral")+
+  labs(y = "Nº visitas hospitalarias primer año de vida", x = "Grupo") +
+  theme(legend.position = "none")
+gr14
+
+ggtoppt(gr14)
+
+gr14.1 <- ggplot(data = datos, aes(y = visitashospi, x = vpp.1, fill = vpp.1)) +
+  geom_violin() +
+  scale_fill_brewer(palette = "Spectral")+
+  labs(y = "Nº visitas hospitalarias primer año de vida", x = "Grupo") +
+  stat_summary(fun.data=median_hilow, mult=1, geom="pointrange", color="black") +
+  theme(legend.position = "none")
+gr14.1
+
+ggtoppt(gr14.1)
+
+# Visitas al centro de salud ----
+
+gr15 <- ggplot(data = datos, aes(y = visitascs, x = vpp.1, fill = vpp.1)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Spectral")+
+  labs(y = "Nº visitas Centro Salud primer año de vida", x = "Grupo") +
+  theme(legend.position = "none")
+gr15
+
+ggtoppt(gr15)
+
+gr15.1 <- ggplot(data = datos, aes(y = visitascs, x = vpp.1, fill = vpp.1)) +
+  geom_violin() +
+  scale_fill_brewer(palette = "Spectral")+
+  labs(y = "Nº visitas Centro Salud primer año de vida", x = "Grupo") +
+  stat_summary(fun.data=median_hilow, mult=1, geom="pointrange", color="black") +
+  theme(legend.position = "none")
+gr15.1
+
+ggtoppt(gr15.1)
+
+# ggtoppt(gr15, export = TRUE)
+
+
+# Hiperfrecuentador ----
+
+datos$`Hiperfrecuentador` <- factor(datos$hiperfrec, labels = c("No","Sí"))
+
+gr16 <- ggplot(data = datos, aes(x = vpp.1, fill = `Hiperfrecuentador`)) +
+  geom_bar(position = "dodge", color = "black") +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(y = "Frecuencia", x = "Grupo")
+  #scale_x_discrete(labels=c("0" = "No", "1" = "Sí"))
+
+gr16
+
+ggtoppt(gr16)
+
+# Usuario frecuente ----
+
+datos$usuario_freq <- ifelse(datos$consultas_totales > 9, 1, 0)
+datos$`Usuario frecuente` <- factor(datos$usuario_freq, labels = c("No","Sí"))
+
+gr17 <- ggplot(data = datos, aes(x = vpp.1, fill = `Usuario frecuente`)) +
+   geom_bar(position = "dodge") +
+   labs(y = "Nº de pacientes usuarios frecuentes", x = "Grupo")
+   #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ�"))
+
+    gr17
+
+    ggtoppt(gr17)
+
+## Gráfico de sectores
+
+# datos$patologia <- ifelse(datos$procesosdigestivo == 1, "Digestivo", 0)
+
+sum(datos$procesosdigestivo,na.rm = TRUE)
+sum(datos$procesosorl, na.rm = TRUE)
+sum(datos$procesosrespi, na.rm = TRUE)
+sum(datos$procesosojos, na.rm = TRUE)
+sum(datos$procesospiel, na.rm = TRUE)
+sum(datos$procesostrauma, na.rm = TRUE)
+sum(datos$procesosotros, na.rm = TRUE)
+sum(datos$procesosinform, na.rm = TRUE)
+sum(datos$procesosfiebre, na.rm = TRUE)
+# sum(datos$procesosinfecciosos, na.rm = TRUE) No se incluye porqu eincluye algunos anteriores
+sum(datos$procesosalergicos, na.rm = TRUE)
+
+df1 <- data.frame(numprocesos = c(sum(datos$procesosdigestivo,na.rm = TRUE),
+                                  sum(datos$procesosorl, na.rm = TRUE),
+                                  sum(datos$procesosrespi, na.rm = TRUE),
+                                  sum(datos$procesosojos, na.rm = TRUE),
+                                  sum(datos$procesospiel, na.rm = TRUE),
+                                  sum(datos$procesostrauma, na.rm = TRUE),
+                                  sum(datos$procesosotros, na.rm = TRUE),
+                                  sum(datos$procesosinform, na.rm = TRUE),
+                                  sum(datos$procesosfiebre, na.rm = TRUE),
+                                  # sum(datos$procesosinfecciosos, na.rm = TRUE) No se incluye porqu eincluye algunos anteriores
+                                  sum(datos$procesosalergicos, na.rm = TRUE)))
+
+df1$names <- c("Digestivo", "Otorrino", "Respiratorio", "Oftalmología", "Dermatología", "Traumatología", "Otros", "Información", "Fiebre", "Alérgicos")
+
+
+
+gr18sec <- ggplot(df1, aes(x="", y=numprocesos, fill=names))+
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0)+
+  scale_fill_brewer(palette = "Spectral")
+
+gr18sec
+ggtoppt(gr18sec)
+
+
+gr18bar <- ggplot(df1, aes(x="", y=numprocesos, fill=names))+
+  geom_bar(position = "dodge", width = 1, stat = "identity", color = "black") +
+  scale_fill_brewer(palette = "Spectral")
+
+gr18bar
+
+ggtoppt(gr18bar)
+
+####
+
+
+# 15               inffam
+# 16              infamig
+# 17               infint
+# 18               inflib
+# 19               infrev
+# 20              infmatr
+# 21              infgine
+# 22               infmap
+# 23             infpedia
+
+sum(datos$inffam == 1,na.rm = TRUE)
+sum(datos$infamig == 1, na.rm = TRUE)
+sum(datos$infint == 1, na.rm = TRUE)
+sum(datos$inflib == 1, na.rm = TRUE)
+sum(datos$infrev == 1, na.rm = TRUE)
+sum(datos$infmatr == 1, na.rm = TRUE)
+sum(datos$infgine == 1, na.rm = TRUE)
+sum(datos$infmap == 1, na.rm = TRUE)
+sum(datos$infpedia == 1, na.rm = TRUE)
+
+dfinf <- data.frame(fuenteinf = c(sum(datos$inffam == 1,na.rm = TRUE),
+                                    sum(datos$infamig == 1, na.rm = TRUE),
+                                    sum(datos$infint == 1, na.rm = TRUE),
+                                    sum(datos$inflib == 1, na.rm = TRUE),
+                                    sum(datos$infrev == 1, na.rm = TRUE),
+                                    sum(datos$infmatr == 1, na.rm = TRUE),
+                                    sum(datos$infgine == 1, na.rm = TRUE),
+                                    sum(datos$infmap == 1, na.rm = TRUE),
+                                    sum(datos$infpedia == 1, na.rm = TRUE)))
+
+dfinf$names <- c("nombrevariable1", "nombrevariable2", "nombrevariable3", "nombrevariable4", "nombrevariable5", "nombrevariable6", "nombrevariable7", "nombrevariable8", "nombrevariable9")
+
+gr19sec <- ggplot(dfinf, aes(x="", y=fuenteinf, fill=names))+
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0)+
+  scale_fill_brewer(palette = "Spectral")
+
+gr19sec
+
+ggtoppt(gr19sec)
+
+
+gr19bar <- ggplot(dfinf, aes(x="", y=fuenteinf, fill=names))+
+  geom_bar(position = "dodge", width = 1, stat = "identity", color = "black") +
+  scale_fill_brewer(palette = "Spectral")
+
+gr19bar
+
+ggtoppt(gr19bar)
+ggtoppt(gr19bar, export = TRUE, pptname = "todoslosgraficos.pptx")

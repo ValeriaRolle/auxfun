@@ -1,0 +1,240 @@
+
+
+querys <- function(dd, hosp = ""){
+      require(auxfun)
+      require(car)
+      require(lubridate)
+      library(data.table)
+      dd <- as.data.frame(dd)
+      names(dd) <- tolower(names(dd))
+
+      if(hosp == ""){
+
+            for(i in c(1,7,35,45,52,75)){
+                  dd[,i] <- ymd(dd[,i])
+            }
+            dd1 <- data.frame(
+                  "comentarios" = NA,
+                  "comentarios2" = NA,
+                  "duplicado" = NA,
+                  "id_sort" = (dd$`patient id` + (dd$`caso n?mero` * 0.1)),
+                  "fecha_us" = dd$fecha,
+                  "nhc" = as.numeric(as.character(dd$`n? de hospital`)),
+                  "vp_id" = dd$`patient id`,
+                  "case_n" = dd$`caso n?mero`,
+                  "nombre" = dd$nombre,
+                  "apellidos" = dd$apellidos,
+                  "dob" = dd$`fecha nacimiento`,
+                  "facultativo" = dd$facultativo,
+                  "indicaci?n" = dd$`detalles de la indicaci?n rut`,
+                  "metodo" = dd$m?todo,
+                  "comentarios_metodo" = dd$comentarios,
+                  "concepcion" = paste(dd$concepci?n, dd$`method of conception`),
+                  "ind_ovulacion" = dd$`estimul. de la ovulaci?n`,
+                  "tabaco" = paste(dd$tabaco, dd$`tabaco actual`, sep = ""),
+                  "alcohol" = paste(dd$alcohol, dd$`alcohol actual`, sep = ""),
+                  "raza" = dd$raza,
+                  "paridad" = dd$`paridad (no de embarazos >= 2`,
+                  "peso" = dd$`actual peso (kg)`,
+                  "altura" = dd$`altura [cm]`,
+                  "drogas" = dd$`drogas actual`,
+                  "dm" = dd$`diabetes mellitus`,
+                  "dm_farmaco" = dd$`diabetes mellitus`,
+                  "pe_previa" = dd$`preeclampsia en un embarazo a`,
+                  "pe_ant_2" = dd$`embarazo anterior con preecla`,
+                  "cir_previo" = dd$`embarazo anterior con rciu`,
+                  "dmg_previa" = dd$`previa diabetes gestacional`,
+                  "les" = dd$`systemic lupus erythematosus`,
+                  "saf" = dd$`s?ndrome antifosfol?pido`,
+                  "hta" = dd$`hta cr?nic`,
+                  "otras_enfermedades" = dd$`otras enfermedades`,
+                  "aas_baja_dosis" = dd$`baja dosis aspirina`,
+                  "aas_retirada" = NA,
+                  "fecha_ult_parto" = dd$`fecha ?ltimo parto >= 24 sg`,
+                  "pn_ult_parto" = dd$`peso del ?ltimo parto >= 24 s`,
+                  "pn_madre" = dd$`peso al nacimiento de la madr`,
+                  "operador_ha" = dd$operador,
+                  "ha_fam_pe" = paste(dd$`historia familiar pe`,dd$`historia familiar de pre-ecla`, sep = ""),
+                  "ha_fam_dm" = dd$`historia familiar dm`,
+                  "pais_madre" = dd$`pa?s de nacimiento de la madr`,
+                  "pais_padre" = dd$`pa?s de nacimiento del padre`,
+                  "emb1_outcome" = dd$`embar.1 resultado`,
+                  "emb1_fdn" = dd$`embar.1 fecha del parto`,
+                  "emb1_eg" = dd$`eg en embar.1 en semanas`,
+                  "emb1_tipo_parto" = dd$`detalles parto embar.1`,
+                  "emb1_pe" = dd$`detalles pre-eclampsia embar.`,
+                  "emb1_sexo" = dd$`sexo del feto embar.1`,
+                  "emb1_pn" = dd$`peso al nacimiento embar.1 (g`,
+                  "emb2_outcome" = dd$`embar.2 resultado`,
+                  "emb2_fdn" = dd$`embar.2 fecha del parto`,
+                  "emb2_eg" = dd$`eg en embar.2 en semanas`,
+                  "emb2_tipo_parto" = dd$`detalles parto embar.2`,
+                  "emb2_pe" = dd$`detalles pre-eclampsia embar.__1`,
+                  "emb2_sexo" = dd$`sexo del feto embar.2`,
+                  "emb2_pn" = dd$`peso al nacimiento embar.2 (g`,
+                  "pas_d1" = dd$`presi?n arterial sist?lica de`,
+                  "pad_d1" = dd$`presi?n arterial diast?lica d`,
+                  "pas_d2" = dd$`presi?n arterial sist?lica de__1`,
+                  "pad_d2" = dd$`presi?n arterial diast?lica d__1`,
+                  "pas_i1" = dd$`presi?n arterial sist?lica iz`,
+                  "pad_i1" = dd$`presi?n arterial diast?lica i`,
+                  "pas_i2" = dd$`presi?n arterial sist?lica iz__1`,
+                  "pad_i2" = dd$`presi?n arterial diast?lica i__1`,
+                  "pam_vp" = dd$`presi?n arterial media`,
+                  "pas" = NA,
+                  "pad" = NA,
+                  "pam_cal" = NA,
+                  "operador_ta" <- dd$`map operator`,
+                  "crl" = dd$`longitud cr?neo-raquis (mm)`,
+                  "nt" = dd$`translucencia nucal (tn) (mm)`,
+                  "ipautd" = dd$`arteria uterina d ip`,
+                  "ipauti"= dd$`arteria uterina i ip`,
+                  "ipm_cal" = NA,
+                  "preval_ofrecido"= dd$`events ofrecido`,
+                  "preval_ci" = dd$`ci firmado`,
+                  "fecha_ci" = dd$`fecha consentimiento`,
+                  "declina_razon" = dd$`declina-raz?n`,
+                  "lab_blood" = dd$`sangre almacenar`,
+                  "diagnostico" = dd$diagn?stico,
+                  "excluida" = NA,
+                  "pappa" = NA,
+                  "plgf" = NA
+            )
+
+
+
+            # Uterines ----
+            for(i in 1:nrow(dd1)){
+                  dd1$ipm_cal[i] <- mean(c(dd1$ipautd[i], dd1$ipauti[i]), na.rm = TRUE)
+            }
+
+            # Conception ----
+            dd1$concepcion <- recode(dd1$concepcion, "
+                                     'AID inducci?n de la ovulaci?n'                  = 'Inducci?n de la ovulaci?n';
+                                     'AIH inducci?n de la ovulaci?n'                  = 'Inducci?n de la ovulaci?n';
+                                     'AIH NA'                                         = 'Inducci?n de la ovulaci?n';
+
+                                     'espont?neo espont?neo'                          = 'Espont?neo';
+                                     'espont?neo NA'                                  = 'Espont?neo';
+                                     'NA espont?neo'                                  = 'Espont?neo';
+
+                                     'FIV FIV'                                        = 'FIV';
+                                     'FIV NA'                                         = 'FIV';
+                                     'ICSI FIV'                                       = 'FIV';
+                                     'NA NA'                                          = NA")
+
+            dd1$concepcion[dd1$concepcion    == "Espont?neo" &
+                                 dd1$ind_ovulacion == "s?" &
+                                 !is.na(dd1$concepcion) &
+                                 !is.na(dd1$ind_ovulacion)] <- "Inducci?n de la ovulaci?n"
+
+            pos_concep <- c("Espont?neo","FIV", "Inducci?n de la ovulaci?n")
+            dd1$comentarios <- ifelse(dd1$concepcion %in% pos_concep, dd1$comentarios, "Concepcion")
+
+            # Method ----
+
+            dd1$metodo <- recode(dd1$metodo, "
+                                 'Ecograf?a transabdominal'                = 'ECO TA';
+                                 'Ecograf?a transabdominal y transvaginal' = 'ECO TA y TV';
+                                 'Ecograf?a transabdominal y TV'           = 'ECO TA y TV';
+                                 'Ecograf?a transvaginal'                  = 'ECO TV'")
+
+            # Indication ----
+            dd1$indicaci?n <- recode(dd1$indicaci?n, " 'Screening del Primer Trimestre' = 'CPT'")
+
+            # Tabaco ----
+            dd1$tabaco <- recode(dd1$tabaco, "
+                                 'fumadorfumador' = 'Fumadora';
+                                 'fumadorNA'      = 'Fumadora';
+                                 'nofumador'      = 'Fumadora';
+                                 'fumadorno'      = 'FumadoraNo';
+                                 'noNA'           = 'No';
+                                 'nono'           = 'No';
+                                 'NANA'           = NA;
+                                 ")
+
+            pos_tabaco <- c("Fumadora", "No", "FumadoraNo")
+
+            dd1$comentarios <- ifelse(dd1$tabaco %in% pos_tabaco, dd1$comentarios, paste(dd1$comentarios, "tabaco", sep = ", "))
+
+            # Alcohol ----
+            dd1$alcohol <- recode(dd1$alcohol, "
+                                  'noNA' = 'No';
+                                  'nono' = 'No';
+                                  'nosi' = 'S?';
+                                  'sino' = 'S?No';
+                                  'sisi' = 'S?';
+                                  'NANA' = NA;
+                                  ")
+            pos_alcohol <- c("S?", "No", "S?No")
+
+            dd1$comentarios <- ifelse(dd1$alcohol %in% pos_alcohol, dd1$comentarios,           paste(dd1$comentarios, "alcohol", sep = ", "))
+
+            dd1$comentarios <- ifelse(dd1$peso > 150 | dd1$peso < 35 | is.na(dd1$peso),        paste(dd1$comentarios, "peso",    sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(dd1$altura > 215 | dd1$altura < 120 | is.na(dd1$altura), paste(dd1$comentarios, "altura",  sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(is.na(dd1$dm),                                           paste(dd1$comentarios, "DM",      sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(is.na(dd1$hta),                                          paste(dd1$comentarios, "HTA",     sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(is.na(dd1$aas_baja_dosis),                               paste(dd1$comentarios, "AAS_baja_dosis?", sep = ", "), dd1$comentarios)
+
+
+            # Family history of PE
+            dd1$ha_fam_pe <- recode(dd1$ha_fam_pe, "
+                                    'hermanahermana' = 'Hermana';
+                                    'madremadre' = 'Madre';
+                                    'NANA' = NA;
+                                    'madrehermana' = 'Madre y hermana';
+                                    'hermanamadre' = 'Madre y hermana';
+                                    'ningunaninguna' = 'Ninguna'
+                                    ")
+            pos_ha_fam_pe <- c("Madre", "Hermana", "Madre y hermana", "Ninguna")
+
+            dd1$comentarios <- ifelse(dd1$ha_fam_pe %in% pos_ha_fam_pe, dd1$comentarios,paste(dd1$comentarios, "Historia familiar PE", sep = ", "))
+
+
+            # Pressure
+            dd1$pas <- apply(dd1[,c("pas_d1","pas_d2","pas_i1","pas_i2")], 1, mean, na.rm = TRUE)
+            dd1$pad <- apply(dd1[,c("pad_d1","pad_d2","pad_i1","pad_i2")], 1, mean, na.rm = TRUE)
+            for(i in 1:nrow(dd1)){
+                  dd1$pam_cal[i] <- ((2/3) * dd1[i, "pad"]) + ((1/3) * dd1[i, "pas"])
+            }
+            dd1$comentarios <- ifelse(dd1$pas_d1 > 190 | dd1$pas_d1 < 50, paste(dd1$comentarios, "pas_d1",  sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(dd1$pas_d2 > 190 | dd1$pas_d2 < 50, paste(dd1$comentarios, "pas_d2",  sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(dd1$pas_i1 > 190 | dd1$pas_i1 < 50, paste(dd1$comentarios, "pas_i1",  sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(dd1$pas_i2 > 190 | dd1$pas_i2 < 50, paste(dd1$comentarios, "pas_i2",  sep = ", "), dd1$comentarios)
+
+            dd1$comentarios <- ifelse(dd1$pad_d1 > 150 | dd1$pad_d1 < 25, paste(dd1$comentarios, "pad_d1",  sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(dd1$pad_d2 > 150 | dd1$pad_d2 < 25, paste(dd1$comentarios, "pad_d2",  sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(dd1$pad_i1 > 150 | dd1$pad_i1 < 25, paste(dd1$comentarios, "pad_i1",  sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(dd1$pad_i2 > 150 | dd1$pad_i2 < 25, paste(dd1$comentarios, "pad_i2",  sep = ", "), dd1$comentarios)
+
+            # CRL
+            dd1$comentarios <- ifelse(dd1$crl > 87 | dd1$crl < 40 | is.na(dd1$crl), paste(dd1$comentarios, "crl", sep = ", "), dd1$comentarios)
+
+            # CI
+            dd1$comentarios <- ifelse(dd1$preval_ci == "s?" & is.na(dd1$fecha_ci), paste(dd1$comentarios, "Fecha CI", sep = ", "), dd1$comentarios)
+
+            # Parity party
+            dd1$paridad <- as.character(dd1$paridad)
+            dd1$paridad[dd1$paridad == "= 0"] <- "Nulip"
+            dd1$paridad[dd1$paridad == "> 0"] <- "Multip"
+
+            dd1$comentarios <- ifelse(dd1$paridad    == "Nulip" & dd1$pe_ant_2   != "Nulip" | dd1$cir_previo != "Nulip", paste(dd1$comentarios, "Paridad", sep = ", "), dd1$comentarios)
+
+            dd1$comentarios <- ifelse(dd1$pe_ant_2   == "Nulip" & dd1$cir_previo != "Nulip" & !is.na(dd1$cir_previo), paste(dd1$comentarios, "pe_ant_2",   sep = ", "), dd1$comentarios)
+            dd1$comentarios <- ifelse(dd1$cir_previo == "Nulip" & dd1$pe_ant_2   != "Nulip" & !is.na(dd1$pe_ant_2),   paste(dd1$comentarios, "cir_previo", sep = ", "), dd1$comentarios)
+            setorder(dd1, id_sort)
+
+            for(i in 2:(nrow(dd1)-1)){
+                  if(dd1[i,"id_sort"] == dd1[(i+1), "id_sort"] | dd1[i,"id_sort"] == dd1[(i-1), "id_sort"]){
+                        dd1$duplicado[i] <- "Duplicado"
+                  }
+            }
+      }
+
+      print(table(dd1$comentarios))
+      dataout <<- dd1
+      write.csv2(dataout, "query.csv")
+}
+
+
+

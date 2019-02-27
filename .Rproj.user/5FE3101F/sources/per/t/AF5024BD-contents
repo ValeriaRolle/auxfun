@@ -1,0 +1,202 @@
+
+
+library(readxl)
+datos <- read_excel("datos.con.urgencias_junio2018.xls")
+
+names(datos) <- tolower(names(datos))
+
+# Visitas urgencias hospitalarias
+
+datos$visitashospi <- ifelse(is.na(datos$visitashospi), 0, datos$visitashospi)
+table(datos$visitashospi)
+round(prop.table(table(datos$visitashospi)),3)
+
+
+# Visitas a demanda CS
+
+table(datos$visitascs)
+summary(datos$visitascs)
+sd(datos$visitascs, na.rm = T)
+
+
+procesos <- apply(datos[,88:98], 2, table, useNA = "ifany")
+
+aux <- 1
+for(i in procesos){
+  print(names(procesos)[aux])
+  print(round(prop.table(i),3))
+  aux <- aux + 1
+}
+
+datos$consultas_totales <- apply(datos[, 86:87], 1, sum, na.rm = T)
+table(datos$consultas_totales)
+summary(datos$consultas_totales)
+hist(datos$consultas_totales)
+
+
+datos$hiperfrec <- ifelse(datos$consultas_totales > 11, 1, 0)
+table(datos$hiperfrec, useNA = "ifany")
+round(prop.table(table(datos$hiperfrec, useNA = "ifany")),3)
+
+
+procesos_total_por_tipo <- apply(datos[,88:98], 2, sum, na.rm = T)
+datos$num_procesos <- apply(datos[,88:98], 1, sum, na.rm = T)
+
+save(datos, file = "ensayo.RData")
+
+## BAYESIAN ANALYSIS USING R2JAGS ##
+
+# Cargar librerÃ­as
+
+suppressPackageStartupMessages(library(tidyverse))
+library(tidyverse)
+suppressPackageStartupMessages(library(R2jags))
+library(R2jags)
+suppressPackageStartupMessages(library(gdata))
+library(gdata)
+
+datos$vpp <- car::recode(datos$vpp, "1 = 1; 2 = 0")
+
+# Efecto crudo de la intervenciÃ³n sobre nÃºmero de consultas
+
+cat("
+model{
+    for (i in 1:N){
+    y[i] ~ dnorm(pred[i],tau)
+    pred[i] <- beta0 + beta1*x1[i]
+    }
+    beta0 ~ dunif(-1000, 1000)
+    beta1 ~ dunif(-1000, 1000)
+    e <- y[]-pred[]
+    sce <- pow(sd(e[]),2)*(N-1)
+    scy <- pow(sd(y[]),2)*(N-1)
+    r2 <- 1-(sce/scy)
+    tau ~ dgamma(0.5,0.5)
+    m1 <- step(beta1)-equals(beta1,0)
+    l1 <- (1-step(beta1))-equals(beta1,0)
+    sigma2 <- 1/tau
+    }
+    ", file = "modelo_reglin.txt")
+
+jd1 <- list(y = datos$consultas_totales, x1 = datos$vpp, N = dim(datos)[1])
+jp1 <- c("beta0","beta1", "m1", "l1", "r2")
+
+jm1 <- jags(data = jd1, parameters.to.save = jp1, model.file = "modelo_reglin.txt", 
+            n.iter = 10000, n.chains = 4, n.burnin = 500, n.thin = 2)
+
+print(jm1)
+
+sims <- as.mcmc(jm1)
+
+plot(density(jm1$BUGSoutput$sims.list$beta1), main = "", xlab = "", lwd = 3)
+segments(0, 0, 0, 0.5, lty = 2)
+points(jm1$BUGSoutput$summary[2,1], 0, pch = 19)
+arrows(jm1$BUGSoutput$summary[2,3], 0, jm1$BUGSoutput$summary[2,7], 0, code = 3, 
+       angle = 90, lwd = 3, length = 0.10, col = "red")
+text(4, 0.2, "Prob. Post (Beta > 0) = 31%", cex = .9)
+title("DistribuciÃ³n posterior del coeficiente de regresiÃ³n del grupo \n 
+      sobre el nÃºmero de consultas")
+
+# Efecto crudo de la intervenciÃ³n sobre hiperfrecuentaciÃ³n
+
+cat("model{
+	for(i in 1:N){
+    y[i] ~ dbern(prob[i])
+    logit(prob[i]) <- beta0 + beta1*x1[i]
+    }
+    beta0 ~ dunif(-1000, 1000)
+    beta1 ~ dunif(-1000, 1000)
+    or1 <- exp(beta1)
+    m1 <- step(beta1)-equals(beta1,0)
+    }", file = "modelo_reglog1.txt")
+
+
+jd2 <- list(y = datos$hiperfrec, x1 = datos$vpp, N = dim(datos)[1])
+jp2 <- c("or1","m1")
+
+jm2 <- jags(data = jd2, parameters.to.save = jp2, model.file = "modelo_reglog1.txt", 
+            n.iter = 10000, n.chains = 4, n.burnin = 500, n.thin = 2)
+
+print(jm2)
+
+sims <- as.mcmc(jm2)
+
+plot(density(jm2$BUGSoutput$sims.list$or1), main = "", xlab = "", lwd = 3)
+segments(1, 0, 1, 1.2, lty = 2)
+points(jm2$BUGSoutput$summary[3,1], 0, pch = 19)
+arrows(jm2$BUGSoutput$summary[3,3], 0, jm2$BUGSoutput$summary[3,7], 0, code = 3, 
+       angle = 90, lwd = 3, length = 0.10, col = "red")
+text(7, 0.2, "Prob. Post (OR > 1) = 20%")
+title("DistribuciÃ³n posterior de la razÃ³n de odds de la intervenciÃ³n \n 
+      sobre hiperfrecuentaciÃ³n")
+
+# library(rvg)
+# library(ggplot2)
+# library(officer)
+
+# doc <- read_pptx()
+# doc <- add_slide(doc, layout = "Title and Content", master = "Office Theme")
+# doc <- ph_with_vg(doc, code = ab, type = "body") # code cuando son graficos base
+# print(doc, target = "my_plot.pptx")
+
+
+
+# Ajuste por covariables: conceptot, stait.   
+
+cat("model{
+	for(i in 1:N){
+    y[i] ~ dbern(prob[i])
+    logit(prob[i]) <- beta0 + beta1*x1[i] + beta2*x2[i] + beta3*x3[i]
+    }
+    beta0 ~ dunif(-1000, 1000)
+    beta1 ~ dunif(-1000, 1000)
+    beta2 ~ dunif(-1000, 1000)
+    beta3 ~ dunif(-1000, 1000)
+    or1 <- exp(beta1)
+    or2 <- exp(beta2)
+    or3 <- exp(beta3)
+    m1 <- step(beta1)-equals(beta1,0)
+    m2 <- step(beta2)-equals(beta2,0)
+    m3 <- step(beta3)-equals(beta3,0)
+    }", file = "modelo_reglog3.txt")
+
+
+jd3 <- list(y = datos$hiperfrec, x1 = datos$vpp, x2 = datos$conceptot, x3 = datos$stait, N = dim(datos)[1])
+jp3 <- c("or1", "or2", "or3", "m1", "m2", "m3")
+
+jm3 <- jags(data = jd3, parameters.to.save = jp3, model.file = "modelo_reglog3.txt", 
+            n.iter = 10000, n.chains = 4, n.burnin = 500, n.thin = 2)
+
+print(jm3)
+
+sims <- as.mcmc(jm3)
+
+
+# Efecto crudo de la intervenciÃ³n (VPP) sobre 'usuario frecuente'
+
+datos$usuario_freq <- ifelse(datos$consultas_totales > 9, 1, 0)
+table(datos$usuario_freq, datos$vpp, useNA = "ifany")
+round(prop.table(table(datos$usuario_freq, datos$vpp, useNA = "ifany"), 2), 3)
+
+cat("model{
+	for(i in 1:N){
+    y[i] ~ dbern(prob[i])
+    logit(prob[i]) <- beta0 + beta1*x1[i]
+    }
+    beta0 ~ dunif(-1000, 1000)
+    beta1 ~ dunif(-1000, 1000)
+    or1 <- exp(beta1)
+    m1 <- step(beta1)-equals(beta1,0)
+    }", file = "modelo_reglog1.txt")
+
+
+jd4 <- list(y = datos$usuario_freq, x1 = datos$vpp, N = dim(datos)[1])
+jp4 <- c("or1","m1")
+
+jm4 <- jags(data = jd4, parameters.to.save = jp4, model.file = "modelo_reglog1.txt", 
+            n.iter = 10000, n.chains = 4, n.burnin = 500, n.thin = 2)
+
+print(jm4)
+
+sims <- as.mcmc(jm4)
+

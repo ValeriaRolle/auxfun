@@ -1,0 +1,66 @@
+---
+title: "Problema 1"
+author: "Patricio Suárez Gil"
+date: "22/8/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Datos
+
+```{r paquetes}
+#install.packages("ca")
+library(ca)
+```
+
+
+```{r datos}
+tabla <- matrix(c(42,18,4,0,12,22,8,2,18,6,10,6,2,8,12,7), ncol = 4, byrow = T )
+colnames(tabla) <- c("b1","b2","b3","b4")  # Hábito fumador entrevistado
+rownames(tabla) <- c("a1","a2","a3","a4")  # Hábito fumador pareja
+tabla
+```
+
+## Test de Ji cuadrado de independencia
+
+```{r ji cuadrado}
+chisq.test(tabla)
+```
+
+
+Dado que el test de Ji cuadrado de independencia muestra que la aproximación puede ser incorrecta (hay 3 celdas - 18.7% - con valores esperados menores de 5), procede hacer un Ji cuadrado con cálculo de valor p mediante simulación de Monte Carlo:
+
+```{r ji cuadrado MC}
+ji_mc <- chisq.test(tabla, simulate.p.value = T, B = 10000)
+ji_mc
+```
+
+
+El test da un valor p muy pequeÃ±o (< 0.0001), por lo que rechazamos la hipótesis de independencia. Concluimos que el estatus de fumador de la persona entrevistada y de su pareja están asociados (no son independientes).
+
+```{r}
+ji_mc$observed
+ji_mc$expected
+O <- ji_mc$observed
+E <- ji_mc$expected
+Discre <- (O-E)/sqrt(E)
+sum(Discre^2)
+```
+
+
+## AnÃ¡lisis de correspondencias
+
+```{r ca}
+solu <- ca(tabla)
+solu
+plot(solu)
+```
+
+En el gráfico se puede observar una gran relación dada su proximidad entre las categorías a1-b1 y a2-b2, que corresponden a "No fumador" y "Poco fumador"; en cambio existe menor relación entre las categorías a3-b3 y a4-b4, correspondientes a "Fumador moderado" y "Gran Fumador". 
+
+
+
+

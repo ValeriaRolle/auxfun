@@ -1,0 +1,138 @@
+
+ggtoppt <- function(gg, export = FALSE, pptname = "exportedplots.pptx"){
+      require(rvg)
+      require(ggplot2)
+      require(officer)
+
+      if(export == FALSE){
+            if(class(gg)[1] == "gg"){
+
+                  if(exists("filename")){
+                              filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+                              filename <- ph_with_vg(filename, ggobj = gg, type = "body")
+                  }else{
+                              filename <- read_pptx()
+                              filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+                              filename <- ph_with_vg(filename, ggobj = gg, type = "body")
+                              filename <<- filename
+                  }
+
+            }else if(class(gg) == "function"){
+                  if(exists("filename")){
+                        filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+                        filename <- ph_with_vg(filename, code = gg(), type = "body")
+                  }else{
+                        filename <- read_pptx()
+                        filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+                        filename <- ph_with_vg(filename, code = gg(), type = "body")
+                        filename <<- filename
+                  }
+            }
+      }else{
+            print(filename, target = pptname)
+      }
+}
+
+
+
+fptable <- function(columna, var_name = "Variable", formato = "markdown"){
+
+      require(knitr)
+
+      # Creo op.table, que contiene un table() de la variable ----
+      op.table <- as.data.frame(table(columna, useNA = "always"))
+
+      # Anado a op.table las proporciones de cada valor, redondeadas a 3. ----
+      op.table$prop  <- (round(prop.table(table(columna, useNA = "always")),3)*100)
+
+
+      # Creo una fila nueva en blanco al final de op.table ----
+      auxdt <- matrix(c(op.table[2,1],1,1),nrow = 1,ncol = 3) # Creo una matriz con tres filas y una sola columna, la primera celda sera el segundo valor de la primera columna, para que no se queje de que no es un factor.
+
+      colnames(auxdt) <- colnames(op.table) # le pongo los mismos colnames que op.table para que no proteste
+      op.table[,1] <- as.character(op.table[,1])
+      op.table <- rbind(op.table, auxdt) # las junto, ahora ya tengo la fila nueva en "blanco".
+
+      # Elementos graficos curiosos ----
+
+      colnames(op.table) <- c(var_name, "Frecuencia", "Proporcion") # Pongo los nombres de las columnas bonitos porque saldran en la tabla.
+
+      #op.table[,1] <- as.character(op.table[,1]) # Si no, no admite que le ponga "TOTAL"
+
+      op.table[nrow(op.table),1] <- "TOTAL" # Le digo que el ultimo valor de esta columna se llame TOTAL
+
+      op.table$Frecuencia <- as.numeric(op.table$Frecuencia) # Para que lo alinee al lado que es.
+
+      op.table$Frecuencia[nrow(op.table)] <- sum(op.table$Frecuencia[1:(nrow(op.table)-1)]) # Suma de las frecuencias
+      op.table$Proporcion[nrow(op.table)] <- (round(sum(round(prop.table(table(columna)),7)),4)*100) # Suma de las proporciones
+      #op.table$Proporcion <- as.numeric(op.table$Proporcion) # a numerico???
+      colnames(op.table) <- c(var_name, "Freq.", "%")
+      kable(op.table, format = formato)
+}
+
+ortable <- function(m1, nvar){
+
+      if(class(m1)[1] == "coxph") {
+            m1 <- summary(m1)
+            table1 <- round(m1$conf.int,4)
+            table1 <- cbind(table1, coef(m1)[,5])
+            colnames(table1) <- c("OR (exp(coef)", "Inv. HR (exp(-coef))", "Limite.inf.", "Limite.sup.", "p.value")
+            return(table1)
+      }else if(class(m1)[1] == "glm"){
+            OR <- exp(summary(m1)$coefficients[1:(nvar+1),1])
+            `Limite.sup.` <- exp(summary(m1)$coefficients[1:(nvar+1),1]+1.96*summary(m1)$coefficients[1:(nvar+1),2])
+            `Limite.inf.` <- exp(summary(m1)$coefficients[1:(nvar+1),1]-1.96*summary(m1)$coefficients[1:(nvar+1),2])
+            `p.valor` <- summary(m1)$coefficients[,4]
+            AIC <- summary(m1)$aic
+            sum1 <- round(cbind(`Limite.inf.`, OR, `Limite.sup.`, `p.valor`, AIC),3)
+
+            sum1 <- as.data.frame(sum1)
+            sum1 <- sum1[-1,]
+            return(sum1)
+      }else{
+            print("The model you entered is not a survival model nor glm model")
+      }
+}
+
+ssummary <- function(columna, var_name = "Variable", decimals = 2, formato = "markdown"){
+      require(knitr)
+
+      if(any(is.na(columna)) == TRUE){
+
+            aux <- round(summary(columna, useNA = "always"),3)
+            aux <- as.factor(aux)
+            aux <- as.data.frame(aux, names(aux))
+            aux$aux <- round(as.numeric(summary(columna)),decimals)
+            sd <- sd(columna, na.rm = TRUE)
+            sd <- data.frame(aux = round(sd,decimals))
+            aux <- rbind(aux, sd)
+            rownames(aux)[8] <- "SD"
+
+            aux1 <- rbind(aux[1,],aux[2,],aux[3,],aux[5,],aux[6,],aux[4,],aux[8,],aux[7,])
+            rownames(aux1) <- c("Min.", "1st Qu.", "Median", "3rd Qu.", "Max.", "Mean", "SD", "NA")
+            kable(aux1, col.names = var_name, format = formato)
+
+      }else if(any(!is.na(columna)) == TRUE){
+
+            aux <- round(summary(columna),3)
+            aux <- as.factor(aux)
+            aux <- as.data.frame(aux, names(aux))
+            aux$aux <- round(as.numeric(summary(columna)),decimals)
+            sd <- round(sd(columna), decimals)
+            sd <- data.frame(aux = sd)
+            aux <- rbind(aux, sd)
+
+            aux1 <- rbind(aux[1,],aux[2,],aux[3,],aux[5,],aux[6,],aux[4,],aux[7,])
+            rownames(aux1) <- c("Min.", "1st Qu.", "Median", "3rd Qu.", "Max.", "Mean", "SD")
+            kable(aux1, col.names = var_name, format = formato)
+      }
+}
+
+vcol <- function(datos, ver = FALSE){
+      if(ver){
+            View(as.data.frame(colnames(datos)))
+      }else if(ver == FALSE){
+            as.data.frame(colnames(datos))
+      }
+}
+
