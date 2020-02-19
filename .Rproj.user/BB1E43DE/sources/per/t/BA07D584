@@ -1,19 +1,19 @@
 {
     "collab_server" : "",
     "contents" : "",
-    "created" : 1529494843916.000,
+    "created" : 1582130928943.000,
     "dirty" : false,
     "encoding" : "ISO-8859-1",
     "folds" : "",
-    "hash" : "3965026237",
-    "id" : "850F0684",
-    "lastKnownWriteTime" : 1579606146,
-    "last_content_update" : 1579606146,
-    "path" : "~/Plataforma PBE Dropbox/Patricio Suarez/auxfun/R/Untitled.R",
+    "hash" : "2022853856",
+    "id" : "BA07D584",
+    "lastKnownWriteTime" : 1582131184,
+    "last_content_update" : 1582131184129,
+    "path" : "C:/Users/avler/Dropbox (Personal)/auxfun/R/Untitled.R",
     "project_path" : "R/Untitled.R",
     "properties" : {
-        "cursorPosition" : "89,0",
-        "scrollLine" : "0"
+        "cursorPosition" : "31,72",
+        "scrollLine" : "16"
     },
     "read_only" : false,
     "read_only_alternatives" : [

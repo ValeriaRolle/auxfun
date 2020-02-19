@@ -5,16 +5,19 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "2084669620",
+    "hash" : "3384708567",
     "id" : "E9D9682F",
-    "lastKnownWriteTime" : 1530919969,
-    "last_content_update" : 1530919969793,
+    "lastKnownWriteTime" : 1566980579,
+    "last_content_update" : 1566980579,
     "path" : "~/Plataforma PBE Dropbox/Patricio Suarez/Ana/Ana-Paloma/20180627-code-pruebas.R",
     "project_path" : null,
     "properties" : {
         "cursorPosition" : "0,0",
         "scrollLine" : "0"
     },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
     "relative_order" : 1,
     "source_on_save" : false,
     "source_window" : "",

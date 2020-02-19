@@ -17,7 +17,7 @@ ggtoppt <- function(gg, export = FALSE, pptname = "exportedplots.pptx"){
                               filename <<- filename
                   }
 
-            }else if(class(gg) == "function"){
+            }else if(class(gg)[1] == "function"){
                   if(exists("filename")){
                         filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
                         filename <- ph_with_vg(filename, code = gg(), type = "body")
@@ -27,6 +27,18 @@ ggtoppt <- function(gg, export = FALSE, pptname = "exportedplots.pptx"){
                         filename <- ph_with_vg(filename, code = gg(), type = "body")
                         filename <<- filename
                   }
+            }else if(class(gg)[1] == "ggsurvplot"){
+                  if(exists("filename")){
+                        filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+                        filename <- ph_with_vg(filename, code = print(gg, newpage = FALSE), type = "body")
+                  }else{
+                        filename <- read_pptx()
+                        filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+                        filename <- ph_with_vg(filename,code = print(gg, newpage = FALSE), type = "body")
+                        filename <<- filename
+                  }
+            }else{
+                  print("Check class")
             }
       }else{
             print(filename, target = pptname)
@@ -35,7 +47,7 @@ ggtoppt <- function(gg, export = FALSE, pptname = "exportedplots.pptx"){
 
 
 
-fptable <- function(columna, var_name = "Variable", caption = "", na = TRUE, format = "markdown"){
+fptable <- function(columna, var_name = "Variable", caption = "", na = TRUE, format = "markdown", digits = 3){
 
       require(knitr)
 
@@ -43,15 +55,15 @@ fptable <- function(columna, var_name = "Variable", caption = "", na = TRUE, for
       # Creo op.table, que contiene un table() de la variable ----
       op.table <- as.data.frame(table(columna, useNA = "always"))
 
-      # Anado a op.table las proporciones de cada valor, redondeadas a 3. ----
-      op.table$prop  <- (round(prop.table(table(columna, useNA = "always")),3)*100)
+      # Anado a op.table las proporciones de cada valor, redondeadas a digits. ----
+      op.table$prop  <- (round(prop.table(table(columna, useNA = "always")),digits)*100)
       }
       if(na == FALSE){
             # Creo op.table, que contiene un table() de la variable ----
             op.table <- as.data.frame(table(columna))
 
             # Anado a op.table las proporciones de cada valor, redondeadas a 3. ----
-            op.table$prop  <- (signif(prop.table(table(columna)),2)*100)
+            op.table$prop  <- (round(prop.table(table(columna)),digits)*100)
       }
       # Creo una fila nueva en blanco al final de op.table ----
       auxdt <- matrix(c(op.table[2,1],1,1),nrow = 1,ncol = 3) # Creo una matriz con tres filas y una sola columna, la primera celda sera el segundo valor de la primera columna, para que no se queje de que no es un factor.
@@ -67,7 +79,7 @@ fptable <- function(columna, var_name = "Variable", caption = "", na = TRUE, for
       op.table$Frecuencia <- as.numeric(op.table$Frecuencia) # Para que lo alinee al lado que es.
 
       op.table$Frecuencia[nrow(op.table)] <- sum(op.table$Frecuencia[1:(nrow(op.table)-1)]) # Suma de las frecuencias
-      op.table$Proporcion[nrow(op.table)] <- (signif(sum(round(prop.table(table(columna)),7)),2)*100) # Suma de las proporciones
+      op.table$Proporcion[nrow(op.table)] <- (round(sum(round(prop.table(table(columna)),7)),digits)*100) # Suma de las proporciones
       #op.table$Proporcion <- as.numeric(op.table$Proporcion) # a numerico???
       colnames(op.table) <- c(var_name, "Freq.", "%")
       kable(op.table, caption = caption, format = format)
@@ -144,4 +156,45 @@ spsstoR <- function(columna, as.Date = TRUE){
       columna <- ISOdate(1582,10,14) + columna
       columna <- as.Date(columna)
       return(columna)
+}
+
+
+crl_ga_eq <- function(){
+
+   noquote("23.73+8.052*(1.037*dd$crl)^0.5")
+}
+
+#
+
+crl_ga <- function(crl){
+
+   23.73+8.052*(1.037*crl)^0.5
+}
+
+coalesce_join <- function(x, y,
+                          by = NULL, suffix = c(".x", ".y"),
+                          join = dplyr::full_join, ...) {
+
+   # Source: https://alistaire.rbind.io/blog/coalescing-joins/
+
+   joined <- join(x, y, by = by, suffix = suffix, ...)
+   # names of desired output
+   cols <- union(names(x), names(y))
+
+   to_coalesce <- names(joined)[!names(joined) %in% cols]
+   suffix_used <- suffix[ifelse(endsWith(to_coalesce, suffix[1]), 1, 2)]
+   # remove suffixes and deduplicate
+   to_coalesce <- unique(substr(
+      to_coalesce,
+      1,
+      nchar(to_coalesce) - nchar(suffix_used)
+   ))
+
+   coalesced <- purrr::map_dfc(to_coalesce, ~dplyr::coalesce(
+      joined[[paste0(.x, suffix[1])]],
+      joined[[paste0(.x, suffix[2])]]
+   ))
+   names(coalesced) <- to_coalesce
+
+   dplyr::bind_cols(joined, coalesced)[cols]
 }

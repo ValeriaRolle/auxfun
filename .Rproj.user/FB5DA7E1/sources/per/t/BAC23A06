@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "ISO-8859-1",
     "folds" : "",
-    "hash" : "3730494951",
+    "hash" : "3965026237",
     "id" : "BAC23A06",
-    "lastKnownWriteTime" : 1548190744,
-    "last_content_update" : 1548190744,
+    "lastKnownWriteTime" : 1579606146,
+    "last_content_update" : 1579606146,
     "path" : "~/Dropbox (Personal)/auxfun/R/Untitled.R",
     "project_path" : "R/Untitled.R",
     "properties" : {
-        "cursorPosition" : "111,28",
-        "scrollLine" : "0"
+        "cursorPosition" : "54,66",
+        "scrollLine" : "69"
     },
     "relative_order" : 1,
     "source_on_save" : false,

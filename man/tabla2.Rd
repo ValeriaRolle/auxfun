@@ -1,32 +1,30 @@
-\name{fptable}
-\alias{fptable}
+\name{tabla2}
+\alias{tabla2}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{Nice tables for RMarkdown
+\title{ Table 2
 %%  ~~function to do ... ~~
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+Creates two data frames (alocated in a list), one for continuous variables (with columns: variable, mean, sd, median and IQR), and another for categorical variables (with columns: n and percentage).
 }
 \usage{
-fptable(columna, var_name = "Variable", caption = "", na = TRUE, format = "markdown")
+table2(data, digits = 2)
+
+
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{columna}{Column to make the table with, should be in the form of df$col.
-  \item{var_name}{ Name of the first column.}
-  \item{caption}{ Table caption, passed to function kable().}
-  \item{na}{ Should the output show missing values?.}
-  \item{format}{ passed to kable().}
+  \item{data}{ Data to summarize, pay attention to column types.
 %%     ~~Describe \code{x} here~~
-}
-\item{nombre_var}{Formal name of the variable (column), to use as title in the table.
-
-}
+}\item{digits}{ Number of decimals to round. }
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
+
+
+A list with two data frames, first one containing the values for continuous variables and second one for categorical variables.
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
@@ -36,7 +34,7 @@ fptable(columna, var_name = "Variable", caption = "", na = TRUE, format = "markd
 \references{
 %% ~put references to the literature/web site here ~
 }
-\author{ Valeria Rolle
+\author{
 %%  ~~who you are~~
 }
 \note{
@@ -49,9 +47,9 @@ fptable(columna, var_name = "Variable", caption = "", na = TRUE, format = "markd
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-fptable(iris$Species)
-fptable(iris$Species, var_name = "Species")
-fptable(iris$Species, var_name = "Species", formato = "latex")
+result <- table2(mtcars)
+result
+writexl::write_xlsx(result, "exported_table2.xlsx")
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

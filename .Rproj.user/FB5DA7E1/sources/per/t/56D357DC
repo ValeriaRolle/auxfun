@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1579864799607.000,
+    "dirty" : false,
+    "encoding" : "ISO-8859-1",
+    "folds" : "",
+    "hash" : "1403089609",
+    "id" : "56D357DC",
+    "lastKnownWriteTime" : 1579864828,
+    "last_content_update" : 1579864828172,
+    "path" : "~/Dropbox (Personal)/auxfun/R/tabla2.R",
+    "project_path" : "R/tabla2.R",
+    "properties" : {
+        "cursorPosition" : "34,123",
+        "scrollLine" : "7"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

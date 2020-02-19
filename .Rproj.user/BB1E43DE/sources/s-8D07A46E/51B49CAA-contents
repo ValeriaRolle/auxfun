@@ -9,32 +9,32 @@ ggtoppt <- function(gg, export = FALSE, pptname = "exportedplots.pptx"){
 
                   if(exists("filename")){
                               filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                              filename <- ph_with(filename, value = gg, location = ph_location_fullsize())
+                              filename <- ph_with(filename, ggobj = gg, type = "body")
                   }else{
                               filename <- read_pptx()
                               filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                              filename <- ph_with(filename, value = gg, location = ph_location_fullsize())
+                              filename <- ph_with(filename, ggobj = gg, type = "body")
                               filename <<- filename
                   }
 
             }else if(class(gg)[1] == "function"){
                   if(exists("filename")){
                         filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                        filename <- ph_with(filename, value = gg(), location = ph_location_fullsize())
+                        filename <- ph_with(filename, code = gg(), type = "body")
                   }else{
                         filename <- read_pptx()
                         filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                        filename <- ph_with(filename, value = gg(), location = ph_location_fullsize())
+                        filename <- ph_with(filename, code = gg(), type = "body")
                         filename <<- filename
                   }
             }else if(class(gg)[1] == "ggsurvplot"){
                   if(exists("filename")){
                         filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                        filename <- ph_with(filename, value = print(gg, newpage = FALSE), location = ph_location_fullsize())
+                        filename <- ph_with(filename, code = print(gg, newpage = FALSE), type = "body")
                   }else{
                         filename <- read_pptx()
                         filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                        filename <- ph_with(filename,value = print(gg, newpage = FALSE), location = ph_location_fullsize())
+                        filename <- ph_with(filename,code = print(gg, newpage = FALSE), type = "body")
                         filename <<- filename
                   }
             }else{

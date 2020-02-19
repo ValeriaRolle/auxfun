@@ -20,7 +20,7 @@ ggtoppt(gg, export = FALSE, pptname = "exportedplots.pptx")
 \details{
 First use the function with \strong{export = FALSE} to create an object (a list like object called "filename" you will see in the enviroment), with all the graphs you want to export in the same ppt (either ggplot or base graphics).
 
-When you are done, run a line with \strong{export = TRUE} to create a power point in the working enviroment. In this line first argument will be not used so it does not matter its value.
+When you are done, run a line with \strong{export = TRUE} to create a power point in the working enviroment. In this line first argument will be not used so it does not matter its value, but it has to be there (sorry, will fix later).
 
 Base is more complicated because it does not store plots in an object. You must create a function to make the plot. It can be combined with ggplot in the same exportation. Example in "Examples" section.
 }

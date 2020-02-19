@@ -1,0 +1,5 @@
+library(auxfun)
+library(ggplot2)
+gg <- ggplot(mtcars, aes(x = mpg, y = am)) + geom_point()
+gg
+ggtoppt(gg)

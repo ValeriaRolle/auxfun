@@ -35,7 +35,7 @@ datos$vpp <- car::recode(datos$vpp, "1=1;2=0")
 datos$vpp.1 <- factor(datos$vpp, labels = c("No Interv","Interv"))
 
 
-# Efecto crudo de la intervenciÃ³n (VPP) sobre psicopatologÃ�a postparto
+# Efecto crudo de la intervenciÃ³n (VPP) sobre psicopatologÃ?a postparto
 
 table(datos$dxpsicopost, useNA = "ifany")
 datos$dxpsicopost <- car::recode(datos$dxpsicopost, "1 = 1;2 = 0")
@@ -276,7 +276,7 @@ gr4 <- ggplot(datos, aes(x = vpp.1, fill = `Parto Inducido`)) +
   geom_bar(position = "dodge", color = "black")+
   scale_fill_brewer(palette = "Spectral") +
   labs(x = "Grupo", y = "Frecuencia")
-  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ�"))
+  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ?"))
 
 gr4
 
@@ -291,7 +291,7 @@ gr5 <- ggplot(datos, aes(x = vpp.1, fill = `Piel con piel`)) +
   geom_bar(position = "dodge", color = "black")+
   scale_fill_brewer(palette = "Spectral") +
   labs(x = "Grupo", y = "Frecuencia")
-  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ�"))
+  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ?"))
 
 gr5
 
@@ -306,7 +306,7 @@ gr6 <- ggplot(datos, aes(x = vpp.1, fill = `Biberón en hospital`)) +
   geom_bar(position = "dodge", color = "black")+
   scale_fill_brewer(palette = "Spectral") +
   labs(x = "Grupo", y = "Frecuencia")
-  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ�"))
+  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ?"))
 
 gr6
 
@@ -322,7 +322,7 @@ gr7 <- ggplot(datos, aes(x = vpp.1, fill = `LME al alta`)) +
   geom_bar(position = "dodge", color = "black")+
   scale_fill_brewer(palette = "Spectral") +
   labs(x = "Grupo", y = "Frecuencia")
-  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ�"))
+  #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ?"))
 
 gr7
 
@@ -500,7 +500,7 @@ datos$`Usuario frecuente` <- factor(datos$usuario_freq, labels = c("No","Sí"))
 gr17 <- ggplot(data = datos, aes(x = vpp.1, fill = `Usuario frecuente`)) +
    geom_bar(position = "dodge") +
    labs(y = "Nº de pacientes usuarios frecuentes", x = "Grupo")
-   #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ�"))
+   #scale_x_discrete(labels=c("0" = "No", "1" = "SÃ?"))
 
     gr17
 
@@ -600,7 +600,7 @@ gr19sec
 ggtoppt(gr19sec)
 
 
-gr19bar <- ggplot(dfinf, aes(x="", y=fuenteinf, fill=names))+
+gr19bar <- ggplot(dfinf, aes(x="", y = fuenteinf, fill=names))+
   geom_bar(position = "dodge", width = 1, stat = "identity", color = "black") +
   scale_fill_brewer(palette = "Spectral")
 

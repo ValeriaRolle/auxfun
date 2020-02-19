@@ -9,15 +9,17 @@
 The exact output of summary but formatted to markdown.
 }
 \usage{
-ssummary(columna, var_name = "Variable", decimals = 3, formato = "markdown")
+ssummary(columna, var_name = "Variable", caption = "", decimals = 3, formato = "markdown", na = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{columna}{ Column to make the summary.
 %%     ~~Describe \code{x} here~~
 }\item{var_name}{ Name to appear on the output table.
-}\item{decimals}{ Number of decimals in the tale.}
+}\item{caption}{ Table caption, passed to function kable().}
+}\item{decimals}{ Number of decimals in the table.}
 \item{formato}{ Argument to pass to kable function.}
+\item{na}{ Should the output show missing values?.}
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
