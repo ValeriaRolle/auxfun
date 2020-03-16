@@ -1,48 +1,46 @@
+ggtoppt <- function(gg, export = FALSE, pptname = "exportedplots.pptx", width = 8, height = 6){
+   require(rvg)
+   require(officer)
 
-ggtoppt <- function(gg, export = FALSE, pptname = "exportedplots.pptx"){
-      require(rvg)
-      require(ggplot2)
-      require(officer)
+   if(export == FALSE){
+      if(class(gg)[1] == "gg"){
 
-      if(export == FALSE){
-            if(class(gg)[1] == "gg"){
+         if(exists("filename")){
+            filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+            filename <- ph_with(filename, dml(ggobj = gg), location = ph_location(width = width, height = height))
+         }else{
+            filename <- read_pptx()
+            filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+            filename <- ph_with(filename, dml(ggobj = gg), location = ph_location(width = width, height = height))
+            filename <<- filename
+         }
 
-                  if(exists("filename")){
-                              filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                              filename <- ph_with(filename, value = gg, location = ph_location_fullsize())
-                  }else{
-                              filename <- read_pptx()
-                              filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                              filename <- ph_with(filename, value = gg, location = ph_location_fullsize())
-                              filename <<- filename
-                  }
-
-            }else if(class(gg)[1] == "function"){
-                  if(exists("filename")){
-                        filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                        filename <- ph_with(filename, value = gg(), location = ph_location_fullsize())
-                  }else{
-                        filename <- read_pptx()
-                        filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                        filename <- ph_with(filename, value = gg(), location = ph_location_fullsize())
-                        filename <<- filename
-                  }
-            }else if(class(gg)[1] == "ggsurvplot"){
-                  if(exists("filename")){
-                        filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                        filename <- ph_with(filename, value = print(gg, newpage = FALSE), location = ph_location_fullsize())
-                  }else{
-                        filename <- read_pptx()
-                        filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-                        filename <- ph_with(filename,value = print(gg, newpage = FALSE), location = ph_location_fullsize())
-                        filename <<- filename
-                  }
-            }else{
-                  print("Check class")
-            }
+      }else if(class(gg)[1] == "function"){
+         if(exists("filename")){
+            filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+            filename <- ph_with(filename, dml(gg()), location = ph_location(width = width, height = height))
+         }else{
+            filename <- read_pptx()
+            filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+            filename <- ph_with(filename, dml(gg()), location = ph_location(width = width, height = height))
+            filename <<- filename
+         }
+      }else if(class(gg)[1] == "ggsurvplot"){
+         if(exists("filename")){
+            filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+            filename <- ph_with(filename, dml(ggobj = gg), location = ph_location(width = width, height = height))
+         }else{
+            filename <- read_pptx()
+            filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
+            filename <- ph_with(filename,dml(ggobj = gg), location = ph_location(width = width, height = height))
+            filename <<- filename
+         }
       }else{
-            print(filename, target = pptname)
+         print("Check class")
       }
+   }else{
+      print(filename, target = pptname)
+   }
 }
 
 

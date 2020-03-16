@@ -8,7 +8,7 @@
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-ggtoppt(gg, export = FALSE, pptname = "exportedplots.pptx")
+ggtoppt(gg, export = FALSE, pptname = "exportedplots.pptx", width = 8, height = 6)
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -16,13 +16,16 @@ ggtoppt(gg, export = FALSE, pptname = "exportedplots.pptx")
   \item{gg}{A ggplot object (first class must be "gg").}
   \item{export}{FALSE to keep adding plots. TRUE to create the pptx file.}
   \item{pptname}{Name for the pptx file.}
+  \item{width}{Plot width.}
+  \item{height}{Plot height.}
 }
 \details{
-First use the function with \strong{export = FALSE} to create an object (a list like object called "filename" you will see in the enviroment), with all the graphs you want to export in the same ppt (either ggplot or base graphics).
+First use the function with \strong{export = FALSE} to create an object (a list like object called "filename" you will see in the enviroment), with all the graphs you want to export in the same ppt (either ggplot or base graphics). Base is more complicated because it does not store plots in an object. You must create a function to make the plot. It can be combined with ggplot in the same exportation. See 'Examples'.
 
-When you are done, run a line with \strong{export = TRUE} to create a power point in the working enviroment. In this line first argument will be not used so it does not matter its value, but it has to be there (sorry, will fix later).
+When you are done, run a line with \strong{export = TRUE} to create a power point in the working enviroment (just "ggtoppt(export = TRUE)".
 
-Base is more complicated because it does not store plots in an object. You must create a function to make the plot. It can be combined with ggplot in the same exportation. Example in "Examples" section.
+
+
 }
 \value{
 %%  ~Describe the value returned
