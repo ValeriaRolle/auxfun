@@ -19,10 +19,7 @@ fptable(columna, var_name = "Variable", caption = "", na = TRUE, format = "markd
   \item{format}{ passed to kable().}
 %%     ~~Describe \code{x} here~~
 }
-\item{nombre_var}{Formal name of the variable (column), to use as title in the table.
 
-}
-}
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 }
