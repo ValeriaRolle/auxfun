@@ -12,7 +12,7 @@ fptable(columna, var_name = "Variable", caption = "", na = TRUE, format = "markd
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{columna}{Column to make the table with, should be in the form of df$col.
+  \item{columna}{Column to make the table with, should be in the form of df$col.}
   \item{var_name}{ Name of the first column.}
   \item{caption}{ Table caption, passed to function kable().}
   \item{na}{ Should the output show missing values?.}
