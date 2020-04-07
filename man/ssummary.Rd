@@ -17,7 +17,7 @@ ssummary(columna, var_name = "Variable", caption = "", decimals = 3, formato = "
 %%     ~~Describe \code{x} here~~
 }\item{var_name}{ Name to appear on the output table.
 }\item{caption}{ Table caption, passed to function kable().}
-}\item{decimals}{ Number of decimals in the table.}
+\item{decimals}{ Number of decimals in the table.}
 \item{formato}{ Argument to pass to kable function.}
 \item{na}{ Should the output show missing values?.}
 }
