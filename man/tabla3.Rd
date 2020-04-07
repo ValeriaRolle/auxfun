@@ -16,8 +16,7 @@ table3(data, grupo, grupo_char, digits = 3, decimal.symbol = ",", test = c("medi
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{data}{ Data to summarize, pay attention to column types.}
-
+\item{data}{ Data to summarize, pay attention to column types.}
 \item{grupo}{ Grouping variable given as column. }
 \item{grupo_char}{ Grouping variable given as character string. }
 \item{digits}{ Number of decimals to round. }
