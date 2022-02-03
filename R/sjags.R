@@ -61,7 +61,7 @@ sjags <- function(form, data, family = "gaussian", n.iter = 10000, n.chains = 4,
 
             lsmodel <- list("\n")
             for(i in 1:length(aux1)){
-                  lsmodel[1] <- paste(lsmodel[1],"l",i," <- (",i,"-step(beta",i,"))-equals(beta",i,",0)\n",sep = "")
+                  lsmodel[1] <- paste(lsmodel[1],"l",i," <- (1-step(beta",i,"))-equals(beta",i,",0)\n",sep = "")
             }
 
             cat(fixedform,formulamodel[[1]], betasmodel[[1]], fixed2, modelsmodel[[1]],lsmodel[[1]],"}", file = "gaumodel.txt")
