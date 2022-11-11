@@ -32,7 +32,7 @@ ggtoppt <- function(gg, export = FALSE, pptname = "exportedplots.pptx", width = 
          }else{
             filename <- read_pptx()
             filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
-            filename <- ph_with(filename,dml(ggobj = gg), location = ph_location(width = width, height = height))
+            filename <- ph_with(filename,dml(code = print(gg, newpage = FALSE)), location = ph_location(width = width, height = height))
             filename <<- filename
          }
       }else{
