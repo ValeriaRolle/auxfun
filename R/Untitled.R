@@ -3,7 +3,7 @@ ggtoppt <- function(gg, export = FALSE, pptname = "exportedplots.pptx", width = 
    require(officer)
 
    if(export == FALSE){
-      if(class(gg)[1] == "gg"){
+      if(inherits(gg, "ggplot")){
 
          if(exists("filename")){
             filename <- add_slide(filename, layout = "Title and Content", master = "Office Theme")
