@@ -155,17 +155,7 @@ spsstoR <- function(columna, as.Date = TRUE){
 }
 
 
-crl_ga_eq <- function(){
 
-   noquote("23.73+8.052*(1.037*dd$crl)^0.5")
-}
-
-#
-
-crl_ga <- function(crl){
-
-   23.73+8.052*(1.037*crl)^0.5
-}
 
 coalesce_join <- function(x, y,
                           by = NULL, suffix = c(".x", ".y"),
@@ -196,12 +186,12 @@ coalesce_join <- function(x, y,
 }
 
 
-plot_coefs1 <- function (..., ci_level = 0.95, inner_ci_level = NULL, model.names = NULL, 
-          coefs = NULL, omit.coefs = c("(Intercept)", "Intercept"), 
-          colors = "CUD Bright", plot.distributions = FALSE, rescale.distributions = FALSE, 
-          exp = FALSE, point.shape = TRUE, point.size = 3, legend.title = "Model", 
-          groups = NULL, facet.rows = NULL, facet.cols = NULL, facet.label.pos = "top", 
-          color.class = colors, resp = NULL, dpar = NULL) 
+plot_coefs1 <- function (..., ci_level = 0.95, inner_ci_level = NULL, model.names = NULL,
+          coefs = NULL, omit.coefs = c("(Intercept)", "Intercept"),
+          colors = "CUD Bright", plot.distributions = FALSE, rescale.distributions = FALSE,
+          exp = FALSE, point.shape = TRUE, point.size = 3, legend.title = "Model",
+          groups = NULL, facet.rows = NULL, facet.cols = NULL, facet.label.pos = "top",
+          color.class = colors, resp = NULL, dpar = NULL)
 {
   if (!requireNamespace("broom", quietly = TRUE)) {
     stop_wrap("Install the broom package to use the plot_coefs function.")
@@ -209,14 +199,14 @@ plot_coefs1 <- function (..., ci_level = 0.95, inner_ci_level = NULL, model.name
   if (!requireNamespace("ggstance", quietly = TRUE)) {
     stop_wrap("Install the ggstance package to use the plot_coefs function.")
   }
-  if (!all(color.class == colors)) 
+  if (!all(color.class == colors))
     colors <- color.class
   model <- term <- estimate <- conf.low <- conf.high <- conf.low.inner <- conf.high.inner <- curve <- est <- NULL
   dots <- list(...)
   if (inherits(dots[[1]], "list")) {
     mods <- dots[[1]]
     if (is.null(model.names) && !is.null(names(mods))) {
-      if (is.null(model.names)) 
+      if (is.null(model.names))
         model.names <- names(mods)
     }
     if (length(dots) > 1) {
@@ -230,13 +220,13 @@ plot_coefs1 <- function (..., ci_level = 0.95, inner_ci_level = NULL, model.name
     if (all(nchar(names(dots))) > 0) {
       models <- !is.na(sapply(dots, function(x) {
         out <- find_S3_class("tidy", x, package = "generics")
-        if (out %in% c("list", "character", "logical", 
+        if (out %in% c("list", "character", "logical",
                        "numeric", "default")) {
           out <- NA
         }
       }))
       mods <- dots[models]
-      if (is.null(model.names)) 
+      if (is.null(model.names))
         model.names <- names(dots)[models]
       if (!all(models)) {
         ex_args <- dots[models]
@@ -263,34 +253,34 @@ plot_coefs1 <- function (..., ci_level = 0.95, inner_ci_level = NULL, model.name
   if (!is.null(model.names)) {
     names(mods) <- model.names
   }
-  
-  
-  tidies <- make_tidies(mods = mods, ex_args = ex_args, ci_level = ci_level, 
-                        model.names = model.names, omit.coefs = omit.coefs, coefs = coefs, 
+
+
+  tidies <- make_tidies(mods = mods, ex_args = ex_args, ci_level = ci_level,
+                        model.names = model.names, omit.coefs = omit.coefs, coefs = coefs,
                         resp = resp, dpar = dpar)
   print(tidies)
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
   n_models <- length(unique(tidies$model))
-  
+
   if (!is.null(inner_ci_level)) {
     if (plot.distributions == FALSE || n_models == 1) {
-      tidies_inner <- make_tidies(mods = mods, ex_args = ex_args, 
-                                  ci_level = inner_ci_level, model.names = model.names, 
+      tidies_inner <- make_tidies(mods = mods, ex_args = ex_args,
+                                  ci_level = inner_ci_level, model.names = model.names,
                                   omit.coefs = omit.coefs, coefs = coefs)
       tidies_inner$conf.low.inner <- tidies_inner$conf.low
       tidies_inner$conf.high.inner <- tidies_inner$conf.high
-      tidies_inner <- tidies_inner[names(tidies_inner) %nin% 
+      tidies_inner <- tidies_inner[names(tidies_inner) %nin%
                                      c("conf.low", "conf.high")]
-      tidies <- merge(tidies, tidies_inner, by = c("term", 
+      tidies <- merge(tidies, tidies_inner, by = c("term",
                                                    "model"), suffixes = c("", ".y"))
     }
     else {
@@ -309,12 +299,12 @@ plot_coefs1 <- function (..., ci_level = 0.95, inner_ci_level = NULL, model.name
     }
     tidies[exp_cols] <- exp(tidies[exp_cols])
   }
-  
-  
+
+
   if (!is.null(groups)) {
     tidies$group <- NA
     for (g in seq_len(length(groups))) {
-      if (is.null(names(groups)) || names(groups)[g] == 
+      if (is.null(names(groups)) || names(groups)[g] ==
           "") {
         tidies$group[tidies$term %in% groups[[g]]] <- as.character(g)
       }
@@ -326,58 +316,58 @@ plot_coefs1 <- function (..., ci_level = 0.95, inner_ci_level = NULL, model.name
       warn_wrap("Distributions cannot be plotted when groups are used.")
     }
   }
-  
-  
-  p <- ggplot(data = tidies, aes(y = term, x = estimate, xmin = conf.low, 
+
+
+  p <- ggplot(data = tidies, aes(y = term, x = estimate, xmin = conf.low,
                                  xmax = conf.high))
   if (!is.null(groups)) {
     if (is.null(facet.rows) && is.null(facet.cols)) {
       facet.cols <- 1
     }
-    p <- p + facet_wrap(group ~ ., nrow = facet.rows, ncol = facet.cols, 
+    p <- p + facet_wrap(group ~ ., nrow = facet.rows, ncol = facet.cols,
                         scales = "free_y", strip.position = facet.label.pos)
   }
   if (length(colors) == 1 || length(colors) != n_models) {
     colors <- get_colors(colors, n_models)
   }
-  
+
   else {
     colors <- colors
   }
-  
+
   dh <- as.numeric(!plot.distributions) * 0.5
 
   if (!is.null(inner_ci_level)) {
-    p <- p + ggstance::geom_linerangeh(aes(y = term, xmin = conf.low.inner, 
-                                           xmax = conf.high.inner, colour = model), position = ggstance::position_dodgev(height = dh), 
+    p <- p + ggstance::geom_linerangeh(aes(y = term, xmin = conf.low.inner,
+                                           xmax = conf.high.inner, colour = model), position = ggstance::position_dodgev(height = dh),
                                        size = 2, show.legend = length(mods) > 1)
   }
   if (plot.distributions == FALSE || n_models == 1) {
     require(ggh4x)
-    p <- p + ggstance::geom_pointrangeh(aes(y = interaction(term, model), x = estimate, 
-                                            xmin = conf.low, xmax = conf.high, fill = model), position = ggstance::position_dodgev(height = dh), 
+    p <- p + ggstance::geom_pointrangeh(aes(y = interaction(term, model), x = estimate,
+                                            xmin = conf.low, xmax = conf.high, fill = model), position = ggstance::position_dodgev(height = dh),
                                         colour = "black", fatten = point.size, size = 0.5, shape = 22,
                                         show.legend = length(mods) > 1) +
-      scale_y_discrete(guide = "axis_nested") 
+      scale_y_discrete(guide = "axis_nested")
   }
   else {
-    p <- p + geom_point(aes(y = term, x = estimate, colour = "black", 
-                            shape = model), fill = model, size = point.size, 
+    p <- p + geom_point(aes(y = term, x = estimate, colour = "black",
+                            shape = model), fill = model, size = point.size,
                         stroke = 1, show.legend = TRUE)
   }
-  
-  
+
+
   if (length(point.shape) == 1 && point.shape == TRUE) {
     oshapes <- c(21:25, 15:18, 3, 4, 8)
     shapes <- oshapes[seq_len(n_models)]
   }
-  
-  else if (length(point.shape) == 1 && is.logical(point.shape[1]) && 
+
+  else if (length(point.shape) == 1 && is.logical(point.shape[1]) &&
            point.shape[1] == FALSE) {
     shapes <- rep(21, times = n_models)
   }
   else {
-    if (length(point.shape) != n_models && length(point.shape) != 
+    if (length(point.shape) != n_models && length(point.shape) !=
         1) {
       stop_wrap("You must provide the same number of point shapes as the\n                number of models.")
     }
@@ -388,24 +378,24 @@ plot_coefs1 <- function (..., ci_level = 0.95, inner_ci_level = NULL, model.name
       shapes <- point.shape
     }
   }
-   p <- p + geom_vline(xintercept = 1 - !exp, linetype = 2, 
-                      size = 0.25) + 
-    scale_colour_manual(values = rep("black", length(colors)), limits = rev(levels(tidies$model)), 
-                                                         breaks = rev(levels(tidies$model)), labels = rev(levels(tidies$model)), 
-                                                         name = legend.title, guide = "none") + 
-    # scale_shape_manual(limits = rev(levels(tidies$model)), values = shapes, name = legend.title) + 
-    theme_nice() + 
+   p <- p + geom_vline(xintercept = 1 - !exp, linetype = 2,
+                      size = 0.25) +
+    scale_colour_manual(values = rep("black", length(colors)), limits = rev(levels(tidies$model)),
+                                                         breaks = rev(levels(tidies$model)), labels = rev(levels(tidies$model)),
+                                                         name = legend.title, guide = "none") +
+    # scale_shape_manual(limits = rev(levels(tidies$model)), values = shapes, name = legend.title) +
+    theme_nice() +
     drop_y_gridlines() +
-    theme(axis.title.y = element_blank(), axis.text.y = element_text(size = 10), panel.grid.major.x = element_line(linetype = "solid")) + 
+    theme(axis.title.y = element_blank(), axis.text.y = element_text(size = 10), panel.grid.major.x = element_line(linetype = "solid")) +
     xlab(ifelse(exp, no = "Estimate", yes = "exp(Estimate)")) +
       theme(ggh4x.axis.nestline = element_line(linetype = 1, colour = "gray92"))
-  
-  
-  
-  
-  
+
+
+
+
+
   if (plot.distributions == TRUE) {
-    p <- p + scale_y_discrete(limits = levels(tidies$term), 
+    p <- p + scale_y_discrete(limits = levels(tidies$term),
                               name = legend.title)
     yrange <- ggplot_build(p)$layout$panel_params[[1]]$y.range
     xrange <- ggplot_build(p)$layout$panel_params[[1]]$x.range
@@ -420,7 +410,7 @@ plot_coefs1 <- function (..., ci_level = 0.95, inner_ci_level = NULL, model.name
       upper_y <- yrange[2]
     }
     lower_y <- 0.8
-    p <- p + coord_cartesian(ylim = c(lower_y, upper_y), 
+    p <- p + coord_cartesian(ylim = c(lower_y, upper_y),
                              xlim = xrange, expand = FALSE)
   }
   return(p)
@@ -432,18 +422,18 @@ reg_match <- function(pattern, text, ignore.case = FALSE, perl = FALSE,
   # If only 1 match, return just the one match rather than a list
   if (length(matches) == 1) {matches <- matches[[1]]}
   regmatches(text, matches, invert)
-  
+
 }
 
 find_S3_class <- function(generic, ..., package) {
-  
+
   # not going to provide function, just function name as character
   # ch <- deparse(substitute(generic))
   f <- X <- function(x, ...) UseMethod("X")
   for (m in .S3methods(generic, envir = getNamespace(package))) {
     assign(sub(generic, "X", m, fixed = TRUE), "body<-"(f, value = m))
   }
-  
+
   char_meth <- tryCatch(X(...), error = function(e) {return(NA)})
   if (is.na(char_meth)) {return(char_meth)}
   # Return the stub for dispatch to getS3method as class
@@ -452,18 +442,18 @@ find_S3_class <- function(generic, ..., package) {
 
 make_tidies <- function(mods, ex_args, ci_level, model.names, omit.coefs,
                         coefs, resp = NULL, dpar = NULL) {
-  
+
   # Need to handle complexities of resp and dpar arguments
   dpars <- NULL
   dpar_fits <- FALSE
   resps <- NULL
   if ("brmsfit" %in% sapply(mods, class)) {
-    
+
     if (!requireNamespace("broom.mixed")) {
       stop_wrap("Please install the broom.mixed package to process `brmsfit`
                 objects.")
     }
-    
+
     mv_fits <- sapply(mods, function(x) "mvbrmsformula" %in% class(formula(x)))
     if (any(mv_fits)) {
       if (!is.null(resp) && length(resp) %nin% c(sum(mv_fits), 1)) {
@@ -476,8 +466,8 @@ make_tidies <- function(mods, ex_args, ci_level, model.names, omit.coefs,
       resps <- as.list(rep(NA, length(mods)))
       # Now put resp into that vector
       resps[mv_fits] <- resp
-    } 
-    
+    }
+
     # Need to detect which models have distributional parameters
     dpar_fits <- sapply(mods, function(x) {
       if ("brmsfit" %nin% class(x)) return(FALSE)
@@ -496,21 +486,21 @@ make_tidies <- function(mods, ex_args, ci_level, model.names, omit.coefs,
                   1.")
       }
       dpars <- as.list(rep(NA, length(mods)))
-      dpars[dpar_fits] <- dpar 
-    } 
+      dpars[dpar_fits] <- dpar
+    }
   }
-  
+
   # Create empty list to hold tidy frames
   tidies <- as.list(rep(NA, times = length(mods)))
-  
+
   for (i in seq_along(mods)) {
-    
+
     # Major kludge for methods clash between broom and broom.mixed
-    # Making namespace environment with broom.mixed before generics 
+    # Making namespace environment with broom.mixed before generics
     # to try to put those methods in the search path
     # Will drop after update to broom 0.7.0
     if (requireNamespace("broom.mixed")) {
-      nse <- as.environment(unlist(sapply(c(asNamespace("broom.mixed"), 
+      nse <- as.environment(unlist(sapply(c(asNamespace("broom.mixed"),
                                             asNamespace("generics")),
                                           as.list)))
     } else {
@@ -526,25 +516,25 @@ make_tidies <- function(mods, ex_args, ci_level, model.names, omit.coefs,
     }
     if (!is.null(ex_args)) {
       method_args <- formals(the_method)
-      
+
       method_args <-
         method_args[names(method_args) %nin% c("intervals", "prob")]
-      
+
       if (method_stub == "brmsfit" && "par_type" %nin% ex_args) {
         ex_args <- c(ex_args, par_type = "non-varying", effects = "fixed")
-      } 
-      
+      }
+
       extra_args <- ex_args[names(ex_args) %in% names(method_args)]
-      
+
     } else if (method_stub == "brmsfit" && is.null(ex_args)) {
       extra_args <- list(effects = "fixed")
     } else {
       extra_args <- NULL
     }
-    
+
     all_args <- as.list(c(x = list(mods[[i]]), conf.int = TRUE,
                           conf.level = ci_level, extra_args))
-    
+
     tidies[[i]] <- do.call(generics::tidy, args = all_args)
     if (!is.null(names(mods)) && any(names(mods) != "")) {
       tidies[[i]]$model <- names(mods)[i]
@@ -569,7 +559,7 @@ make_tidies <- function(mods, ex_args, ci_level, model.names, omit.coefs,
           this_dv <- grepl(paste0("^", resps[[i]], "_"), tidies[[i]]$term)
           tidies[[i]] <- tidies[[i]][this_dv, ]
           # Also want to manicure those term names because they're confusing
-          tidies[[i]]$term <- 
+          tidies[[i]]$term <-
             gsub(paste0("^", resps[[i]], "_"), "", tidies[[i]]$term)
         }
       } else if (!is.null(dpars) && !is.na(dpars[[i]])) {
@@ -578,10 +568,10 @@ make_tidies <- function(mods, ex_args, ci_level, model.names, omit.coefs,
         this_dv <- grepl(paste0("^", dpars[[i]], "_"), tidies[[i]]$term)
         tidies[[i]] <- tidies[[i]][this_dv, ]
         # Drop the prefix now
-        tidies[[i]]$term <- 
+        tidies[[i]]$term <-
           gsub(paste0("^", dpars[[i]], "_"), "", tidies[[i]]$term)
       }
-    } else if ("brmsfit" %in% class(mods[[i]]) && 
+    } else if ("brmsfit" %in% class(mods[[i]]) &&
                any(dpar_fits) && dpar_fits[[i]]) {
       # Need to drop dpar parameters...first, need to identify them
       the_dpars <- names(brms::brmsterms(formula(mods[[i]]))$dpars)
@@ -592,22 +582,22 @@ make_tidies <- function(mods, ex_args, ci_level, model.names, omit.coefs,
       }
     }
   }
-  
+
   # Keep only columns common to all models
-  # TODO: replicate dplyr::bind_rows behavior of keeping all columns and 
+  # TODO: replicate dplyr::bind_rows behavior of keeping all columns and
   # filling empty rows with NA
   tidies <- lapply(tidies, function(x) {
     x[Reduce(intersect, lapply(tidies, names))]
   })
-  
+
   # Combine the tidy frames into one, long frame
   tidies <- do.call(rbind, tidies)
-  
+
   # For consistency in creating the factors apply contrived names to model.names
   if (is.null(model.names)) {
     model.names <- unique(tidies$model)
   }
-  
+
   # Drop omitted coefficients
   if (!is.null(omit.coefs)) {
     tidies <- tidies[tidies$term %nin% omit.coefs,]
@@ -618,33 +608,33 @@ make_tidies <- function(mods, ex_args, ci_level, model.names, omit.coefs,
     coefs <- unique(tidies$term)
     names(coefs) <- coefs
   } else {
-    tidies <- tidies[tidies$term %in% coefs,] #Valeria coefs must be specified as varnamecatname 
+    tidies <- tidies[tidies$term %in% coefs,] #Valeria coefs must be specified as varnamecatname
     if (is.null(names(coefs))) {
       names(coefs) <- coefs
     }
   }
   print(tidies)
-  
+
   # For some reason, the order of the legend and the dodged colors
   # only line up when they are reversed here and in the limits arg of
   # scale_colour_brewer...no clue why that has to be the case
   tidies$model <- factor(tidies$model, levels = rev(model.names))
   tidies$term <- factor(tidies$term, levels = rev(coefs),
                         labels = rev(names(coefs)))
-  
+
   if (all(c("upper", "lower") %in% names(tidies)) &&
       "conf.high" %nin% names(tidies)) {
     tidies$conf.high <- tidies$upper
     tidies$conf.low <- tidies$lower
   }
-  
+
   # For merMod and other models, we may not get CIs for the random terms
   # and don't want blank rows on the plot.
   which_complete <- which(!is.na(tidies$conf.high) & !is.na(tidies$conf.low) &
                             !is.na(tidies$estimate))
   tidies <- tidies[which_complete,]
   tidies$term <- droplevels(tidies$term)
-  
+
   return(tidies)
-  
+
 }
