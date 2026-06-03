@@ -20,7 +20,7 @@ More details available in each function's help page.
 ## Installation
 
 ```r
-require(devtools)
-devtools::install_github("ValeriaRolle/auxfun")
+require(pak)
+pak::pkg_install("ValeriaRolle/auxfun")
 ```
 
